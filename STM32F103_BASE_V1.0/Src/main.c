@@ -41,8 +41,7 @@
 /* USER CODE BEGIN Includes */
 #include "TaskTimeManager.h"
 #include "ProtocolFrame.h"
-#include "ComBuff.h"
-#include "as5600.h"
+#include "ComBuff.h" 
 
 /* USER CODE END Includes */
 

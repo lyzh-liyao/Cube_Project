@@ -23,6 +23,13 @@ void Protocol_Init(){
 	pdt.Handle = NULL;
 	Protocol_Register(&pdt,SEND);
 	
+  memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = 1;
+	pdt.ModuleAction = HEAP_USE; 
+	pdt.Handle = Heap_Use;
+	Protocol_Register(&pdt,RECEIVE);
+  
+  
 	memset(&pdt, 0, sizeof(Protocol_Desc_T));
 	pdt.ProtocolSize = sizeof(HEARTBEAT_PROTOCOL_T);
 	pdt.ModuleAction = HEART_BEAT; 

@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include "ComBuff.h"
 
-
+void Heap_Use(Protocol_Info_T* pi){
+  __iar_dlmalloc_stats();
+}
 /*
 
   	     = TO_MODULE_ACTION(PAD_MODULE, FACEMOT_MODULE, 0x01),
