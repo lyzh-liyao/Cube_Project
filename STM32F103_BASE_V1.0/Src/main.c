@@ -74,6 +74,8 @@ void LED_TEST(void){
 //  memset(data, 0, 8);  
   //PRINT_HEAP();
   printf("LED_TEST:%d\r\n", seq++); 
+  uint8_t psd = 5;
+  Protocol_Send(REPORT_STATE, &psd, 1);
 }
 
  
