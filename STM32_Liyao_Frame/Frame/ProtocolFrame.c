@@ -458,7 +458,8 @@ int8_t Protocol_To_Uart(Protocol_Info_T* pi){
   uint16_t tmpData = 0; 
   
   tmpData = pi->Head;
-  data[index++] = tmpData; 
+  data[index++] = tmpData;
+#if PROTOCOL_VERSION == 2
   if((tmpData = IsShift(&pi->Standby1)) > 0){
     data[index++] = tmpData>>8; 
     data[index++] = tmpData&0xff; 
@@ -483,6 +484,7 @@ int8_t Protocol_To_Uart(Protocol_Info_T* pi){
   }else{
     data[index++] = pi->Serial;
   }  
+#endif
   if((tmpData = IsShift(&pi->Action)) > 0){
     data[index++] = tmpData>>8; 
     data[index++] = tmpData&0xff; 
