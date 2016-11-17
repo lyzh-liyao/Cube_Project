@@ -132,7 +132,7 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-int8_t _TaskTime_Remove(uint8_t id){ 
+static int8_t _TaskTime_Remove(uint8_t id){ 
 	if(TaskTime_Check_ID(id) < 0)
 		return -1;
 	tmpTaskTime = TaskTime_Head->_next;
@@ -287,9 +287,9 @@ void TaskTime_Run(void){
 				#ifdef LOAD_MONITOR_ON
 					COUNTER_ON; 
 				#endif
+				tmpTaskTime->_TaskState = TASK_WAIT; 
 				tmpTaskTime->Run();
 				tmpTaskTime->RunCount++;
-				tmpTaskTime->_TaskState = TASK_WAIT; 
 				#ifdef LOAD_MONITOR_ON
 					COUNTER_OFF; 
 				#endif
@@ -388,7 +388,7 @@ void DelayUS(int32_t us){
 			us -= (SysTickVal_Last + (SYSTICK_COUNT - SysTickVal)); 
 		} 
 		SysTickVal_Last = SysTickVal;
-	} 
+	}
 }
 
 /****************************************************

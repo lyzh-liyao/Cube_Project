@@ -73,9 +73,9 @@ void LED_TEST(void){
 //  Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, 8);
 //  memset(data, 0, 8);  
   //PRINT_HEAP();
-  printf("LED_TEST:%d\r\n", seq++); 
+  printf("LED_TEST:%d\r\n", seq++);
   uint8_t psd = 5;
-  Protocol_Send(REPORT_STATE, &psd, 1);
+  //Protocol_Send(REPORT_STATE, &psd, 1);
 }
 
  
@@ -84,27 +84,27 @@ void SenderKeepTransmit(void){
   Uart1_DMA_Sender.KeepTransmit(&Uart1_DMA_Sender);
 }
 
-void PaddingProtocol(void){
-	#define BUFFSIZE 100
-	int8_t cnt = 0;
-	uint8_t data[BUFFSIZE] = {0};  
-	#if UART1_PROTOCOL_RESOLVER && UART1_DMA_RECEIVER
-    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-      UART1_Resolver->Protocol_Put(UART1_Resolver,data,cnt);
-  #endif
-	#if UART2_PROTOCOL_RESOLVER && UART2_DMA_RECEIVER
-		if((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART2_Resolver->Protocol_Put(UART2_Resolver,data,cnt);  
-	#endif
-	#if UART3_PROTOCOL_RESOLVER && UART3_DMA_RECEIVER
-		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART3_Resolver->Protocol_Put(UART3_Resolver,data,cnt);  
-	#endif
-	#if UART4_PROTOCOL_RESOLVER && UART4_DMA_RECEIVER
-		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART4_Resolver->Protocol_Put(UART4_Resolver,data,cnt);  
-	#endif
-}
+//void PaddingProtocol(void){
+//	#define BUFFSIZE 100
+//	int8_t cnt = 0;
+//	uint8_t data[BUFFSIZE] = {0};  
+//	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
+//    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+//      ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
+//  #endif
+//	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
+//		if((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+//			ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,data,cnt);  
+//	#endif
+//	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
+//		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+//			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);  
+//	#endif
+//	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
+//		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+//			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
+//	#endif
+//}
 /* USER CODE END 0 */
 
 int main(void)
@@ -126,6 +126,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
+  MX_USART2_UART_Init();
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
@@ -133,11 +134,12 @@ int main(void)
   ProtocolFrame_Init();
   Log_Init();
   ComBuff_Init(); 
-  
+//  HAL_UART_Receive_DMA(&huart2, Uart2_DMA_Receiver.Data, 1024); 
   TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
+   
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,7 +148,7 @@ int main(void)
   {
   /* USER CODE END WHILE */
 
-  /* USER CODE BEGIN 3 */ 
+  /* USER CODE BEGIN 3 */
     TaskTime_Run(); 
   }
   /* USER CODE END 3 */

@@ -4,19 +4,19 @@
 //------------------------------LOG------------------------------
 Log_T Log = {0};
 
-void _error(const char* message){ 
+static void _error(const char* message){ 
 	#ifdef LOG_OUT
 		printf("Log->ERROR:%s", message); 
 	#endif
 }
 
-void _warning(const char* message){ 
+static void _warning(const char* message){ 
 	#ifdef LOG_OUT
 		printf("Log->WARNING:%s", message); 
 	#endif
 }
 
-void _info(const char* message){ 
+static void _info(const char* message){ 
 	#ifdef LOG_OUT
 		printf("Log->INFO:%s", message); 
 	#endif

@@ -1,5 +1,6 @@
 #include "ProtocolFrame.h" 
 #include "Protocol.h"  
+#include "FrameConfig.h"
 #include "LOG.h" 
 #include "List.h"
 #include <stdio.h>
@@ -22,25 +23,25 @@ List_Head_T* Transpond_Desc_P = NULL;
  
 
 
-#if UART1_PROTOCOL_RESOLVER
-	#define UART1_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
-	Protocol_Resolver_T _UART1_Resolver; 
-	Protocol_Resolver_T* UART1_Resolver = &_UART1_Resolver;
+#if PROTOCOL_RESOLVER_1
+	#define RESOLVER_1_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
+	Protocol_Resolver_T _ProtocolResolver_1; 
+	Protocol_Resolver_T* ProtocolResolver_1 = &_ProtocolResolver_1;
 #endif
-#if UART2_PROTOCOL_RESOLVER
-	#define UART2_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
-	Protocol_Resolver_T _UART2_Resolver;
-	Protocol_Resolver_T* UART2_Resolver = &_UART2_Resolver;
+#if PROTOCOL_RESOLVER_2
+	#define RESOLVER_2_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
+	Protocol_Resolver_T _ProtocolResolver_2;
+	Protocol_Resolver_T* ProtocolResolver_2 = &_ProtocolResolver_2;
 #endif
-#if UART3_PROTOCOL_RESOLVER
-	#define UART3_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
-	Protocol_Resolver_T _UART3_Resolver; 
-	Protocol_Resolver_T* UART3_Resolver = &_UART3_Resolver;
+#if PROTOCOL_RESOLVER_3
+	#define RESOLVER_3_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
+	Protocol_Resolver_T _ProtocolResolver_3; 
+	Protocol_Resolver_T* ProtocolResolver_3 = &_ProtocolResolver_3;
 #endif
-#if UART4_PROTOCOL_RESOLVER
-	#define UART4_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
-	Protocol_Resolver_T _UART4_Resolver;
-	Protocol_Resolver_T* UART4_Resolver = &_UART4_Resolver;
+#if PROTOCOL_RESOLVER_4
+	#define RESOLVER_4_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
+	Protocol_Resolver_T _ProtocolResolver_4;
+	Protocol_Resolver_T* ProtocolResolver_4 = &_ProtocolResolver_4;
 #endif
 //-----------------------------------------------------  
 //###################################对内函数区###################################
@@ -49,7 +50,7 @@ List_Head_T* Transpond_Desc_P = NULL;
 	功能:		清除协议栈正在写入的协议
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
-void _clean_recv_buf(Protocol_Resolver_T* pr){
+static void _clean_recv_buf(Protocol_Resolver_T* pr){
 	memset(&pr->pi, 0, sizeof(Protocol_Info_T)); 
 	pr->Recv_State = 0;
 	pr->Cnt = 0;
@@ -63,7 +64,7 @@ void _clean_recv_buf(Protocol_Resolver_T* pr){
 	功能:		提取并执行已经缓存的协议
 	作者:		liyao 2016年9月8日10:54:34
 ****************************************************/
-void _Fetch_Protocol(Protocol_Resolver_T* pr){
+static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	Protocol_Info_T pi;
 	while(Queue_Link_Get(pr->Protocol_Queue,&pi) == 0){ 
 		if(pi.Check != NULL){
@@ -89,7 +90,7 @@ void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	注意: 	通过protocol_flag标志位标示是否解析出新的协议
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
-int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
+static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	uint8_t i, data; 
 	uint16_t src_board_action;
 	List_Node_T* Cur_Node = Recv_Desc_P->Head;
@@ -159,6 +160,10 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 						break;
 			case 7: //处理校验和校验  
 						pr->pi.CheckSum = data;
+            #ifdef PROTOCOL_CHECKSUM
+              pr->Recv_State++; 
+              break;
+            #endif
 						/*校验和暂时关闭*/
 						if(((uint8_t)pr->CheckSum & 0xff) != data){
               uint8_t mess[50] = {0};
@@ -202,7 +207,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 							return -5;
 						}else{
 							Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
-              //UART1_Resolver->Fetch_Protocol(UART1_Resolver);
+              //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
 							_clean_recv_buf(pr); 
 						}
 						break;
@@ -218,7 +223,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	注意: 	通过protocol_flag标志位标示是否解析出新的协议
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
-int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
+static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	uint8_t i, data;
 	List_Node_T* Cur_Node = Recv_Desc_P->Head;
 	
@@ -261,6 +266,8 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
               for(uint8_t j = 0; j < pr->pi.ParaLen;j++)
                 pr->CheckSum += pr->ParaData[j];
               pr->CheckSum += pr->pi.Action;
+              
+              #if PROTOCOL_CHECKSUM == 1
               if(((uint8_t)pr->CheckSum & 0xff) != pr->pi.CheckSum){
                 uint8_t mess[50] = {0};
                 sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
@@ -268,6 +275,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
                 _clean_recv_buf(pr);
                 return -3;
               }
+              #endif              
               //帧尾处理
               pr->pi.Tail = data;
               //协议匹配处理
@@ -294,7 +302,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
                 return -5;
               }else{
                 Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
-                //UART1_Resolver->Fetch_Protocol(UART1_Resolver);
+                //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
                 _clean_recv_buf(pr); 
               } 
             }
@@ -309,7 +317,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	参数:		原字符
 	功能: 	字符转义
 ****************************************************/
- uint16_t IsShift(uint8_t* Data){
+static uint16_t IsShift(uint8_t* Data){
   if(*Data == 0xFD || *Data == 0xF8 || *Data == 0xFE){//??
      switch(*Data){
         case 0xFD:return 0xFE<<8 | 0x7D;
@@ -332,7 +340,7 @@ int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	注意：	只返回低8位
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
-uint8_t getCheckSum_ByProtocolInfo(Protocol_Info_T* pi){
+static uint8_t getCheckSum_ByProtocolInfo(Protocol_Info_T* pi){
 	uint8_t i, sum = 0; 
   sum += pi->Standby1;
   sum += pi->Plen;
@@ -414,37 +422,33 @@ void ProtocolFrame_Init(){
 	//协议列表初始化
 	Protocol_Init();
 	//发送数据队列初始化 
-#if UART1_PROTOCOL_RESOLVER
-//	UART1_Resolver->Protocol_Queue = Queue_Init( _UART1_Protocol_QueueBuf,sizeof(Protocol_Info_T), UART1_RPQUEUE_SIZE);
-	UART1_Resolver->Protocol_Queue = Queue_Link_Init(UART1_RPQUEUE_SIZE); 
-	UART1_Resolver->Protocol_Put = _Protocol_Put;
-	UART1_Resolver->Fetch_Protocol = _Fetch_Protocol;
+#if PROTOCOL_RESOLVER_1
+//	ProtocolResolver_1->Protocol_Queue = Queue_Init( _UART1_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_1_RPQUEUE_SIZE);
+	ProtocolResolver_1->Protocol_Queue = Queue_Link_Init(RESOLVER_1_RPQUEUE_SIZE); 
+	ProtocolResolver_1->Protocol_Put = _Protocol_Put;
+	ProtocolResolver_1->Fetch_Protocol = _Fetch_Protocol;
 #endif  
 
-#if UART2_PROTOCOL_RESOLVER
-//	UART2_Resolver->Protocol_Queue = Queue_Init( _UART2_Protocol_QueueBuf,sizeof(Protocol_Info_T), UART2_RPQUEUE_SIZE);
-	UART2_Resolver->Protocol_Queue = Queue_Link_Init(UART2_RPQUEUE_SIZE);
-	UART2_Resolver->RPQueue_Size = UART2_RPQUEUE_SIZE; 
-	UART2_Resolver->Protocol_Put = _Protocol_Put;
-	UART2_Resolver->Fetch_Protocol = _Fetch_Protocol;
+#if PROTOCOL_RESOLVER_2
+//	ProtocolResolver_2->Protocol_Queue = Queue_Init( _UART2_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_2_RPQUEUE_SIZE);
+	ProtocolResolver_2->Protocol_Queue = Queue_Link_Init(RESOLVER_2_RPQUEUE_SIZE); 
+	ProtocolResolver_2->Protocol_Put = _Protocol_Put;
+	ProtocolResolver_2->Fetch_Protocol = _Fetch_Protocol;
 #endif  
 	
-#if UART3_PROTOCOL_RESOLVER
-//	UART3_Resolver->Protocol_Queue = Queue_Init( _UART3_Protocol_QueueBuf,sizeof(Protocol_Info_T), UART3_RPQUEUE_SIZE);
-	UART3_Resolver->Protocol_Queue = Queue_Link_Init(UART3_RPQUEUE_SIZE);
-	UART3_Resolver->RPQueue_Size = UART3_RPQUEUE_SIZE; 
-	UART3_Resolver->Protocol_Put = _Protocol_Put;
-	UART3_Resolver->Fetch_Protocol = _Fetch_Protocol;
+#if PROTOCOL_RESOLVER_3
+//	ProtocolResolver_3->Protocol_Queue = Queue_Init( _UART3_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_3_RPQUEUE_SIZE);
+	ProtocolResolver_3->Protocol_Queue = Queue_Link_Init(RESOLVER_3_RPQUEUE_SIZE); 
+	ProtocolResolver_3->Protocol_Put = _Protocol_Put;
+	ProtocolResolver_3->Fetch_Protocol = _Fetch_Protocol;
 #endif 
 	
-#if UART4_PROTOCOL_RESOLVER
-//	UART4_Resolver->Protocol_Queue = Queue_Init( _UART4_Protocol_QueueBuf,sizeof(Protocol_Info_T), UART4_RPQUEUE_SIZE);
-	UART4_Resolver->Protocol_Queue = Queue_Link_Init(UART4_RPQUEUE_SIZE);
-	UART4_Resolver->RPQueue_Size = UART4_RPQUEUE_SIZE; 
-	UART4_Resolver->Protocol_Put = _Protocol_Put;
-	UART4_Resolver->Fetch_Protocol = _Fetch_Protocol;
-#endif 
-	
+#if PROTOCOL_RESOLVER_4
+//	ProtocolResolver_4->Protocol_Queue = Queue_Init( _UART4_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_4_RPQUEUE_SIZE);
+	ProtocolResolver_4->Protocol_Queue = Queue_Link_Init(RESOLVER_4_RPQUEUE_SIZE); 
+	ProtocolResolver_4->Protocol_Put = _Protocol_Put;
+	ProtocolResolver_4->Fetch_Protocol = _Fetch_Protocol;
+#endif
 }
 
 /****************************************************
@@ -556,16 +560,16 @@ void Protocol_Send_Transpond(Protocol_Info_T* pi){
 ******************************************************************/
 void FetchProtocols(void)
 {
-	#if UART1_PROTOCOL_RESOLVER
-		UART1_Resolver->Fetch_Protocol(UART1_Resolver);
+	#if PROTOCOL_RESOLVER_1
+		ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
 	#endif
-	#if UART2_PROTOCOL_RESOLVER
-		UART2_Resolver->Fetch_Protocol(UART2_Resolver);
+	#if PROTOCOL_RESOLVER_2
+		ProtocolResolver_2->Fetch_Protocol(ProtocolResolver_2);
 	#endif
-	#if UART3_PROTOCOL_RESOLVER
-		UART3_Resolver->Fetch_Protocol(UART3_Resolver);
+	#if PROTOCOL_RESOLVER_3
+		ProtocolResolver_3->Fetch_Protocol(ProtocolResolver_3);
 	#endif
-	#if UART4_PROTOCOL_RESOLVER
-		UART4_Resolver->Fetch_Protocol(UART4_Resolver);
+	#if PROTOCOL_RESOLVER_4
+		ProtocolResolver_4->Fetch_Protocol(ProtocolResolver_4);
 	#endif
 }

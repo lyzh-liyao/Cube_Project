@@ -1,7 +1,11 @@
 #ifndef __COMBUFF_H__
 #define __COMBUFF_H__  
 #include "FrameConfig.h" 
-#include "stm32f1xx_hal.h"
+#if MCU_TYPE == 103
+  #include "stm32f1xx_hal.h"
+#elif MCU_TYPE == 030 
+  #include "stm32f0xx_hal.h"
+#endif
 #include "Queue.h"   
 #define TRUE 1
 #define FALSE 0
@@ -67,22 +71,22 @@ struct _DMA_Receiver_T{
 #endif
 /*************´®¿Ú·¢ËÍÕß*************/	
 #ifdef UART1_DMA_SENDER		
-	#define UART1_DMA_SEND_SIZE 100 
+	//#define UART1_DMA_SEND_SIZE 100 
 	extern DMA_Sender_T Uart1_DMA_Sender; 
 #endif
 
 #ifdef UART2_DMA_SENDER		
-	#define UART2_DMA_SEND_SIZE 100 
+	//#define UART2_DMA_SEND_SIZE 100 
 	extern DMA_Sender_T Uart2_DMA_Sender; 
 #endif
 
 #ifdef UART3_DMA_SENDER		
-	#define UART3_DMA_SEND_SIZE 100 
+	//#define UART3_DMA_SEND_SIZE 100 
 	extern DMA_Sender_T Uart3_DMA_Sender; 
 #endif
 
 #ifdef UART4_DMA_SENDER		
-	#define UART4_DMA_SEND_SIZE 100 
+	//#define UART4_DMA_SEND_SIZE 100 
 	extern DMA_Sender_T Uart4_DMA_Sender; 
 #endif
 
@@ -94,5 +98,9 @@ extern void Buff_To_NRF(void);
 //extern void WriteByteToUSART(USART_TypeDef* USARTx, u8 data);
 extern void ComBuff_Init(void);
 extern void ComBuff_Configuration(void);
+
+
+extern __weak void PaddingProtocol(void);
+extern __weak void SenderKeepTransmit(void);
 #endif
 

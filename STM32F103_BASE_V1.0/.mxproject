@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=E:/CubeProject/STM32F103_Magnetic_V1.0/Inc
+HeaderPath=E:/LiyaoProject/Cube_Project/STM32F103_BASE_V1.0/Inc
 HeaderFiles=gpio.h;dma.h;i2c.h;usart.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=E:/CubeProject/STM32F103_Magnetic_V1.0/Src
+SourcePath=E:/LiyaoProject/Cube_Project/STM32F103_BASE_V1.0/Src
 SourceFiles=gpio.h;dma.h;i2c.h;usart.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;gpio.c;dma.c;i2c.c;usart.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]

@@ -88,33 +88,7 @@ void ReportAngle(void){
   uint16_t angle = getRawAngle(); 
   HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&angle, 2, 100);
 }
-
-//持续传输发送者缓冲区中的缓冲数据
-void SenderKeepTransmit(void){
-  Uart1_DMA_Sender.KeepTransmit(&Uart1_DMA_Sender);
-}
-
-void PaddingProtocol(void){
-	#define BUFFSIZE 100
-	int8_t cnt = 0;
-	uint8_t data[BUFFSIZE] = {0};  
-	#if UART1_PROTOCOL_RESOLVER && UART1_DMA_RECEIVER
-    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-      UART1_Resolver->Protocol_Put(UART1_Resolver,data,cnt);
-  #endif
-	#if UART2_PROTOCOL_RESOLVER && UART2_DMA_RECEIVER
-		if((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART2_Resolver->Protocol_Put(UART2_Resolver,data,cnt);  
-	#endif
-	#if UART3_PROTOCOL_RESOLVER && UART3_DMA_RECEIVER
-		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART3_Resolver->Protocol_Put(UART3_Resolver,data,cnt);  
-	#endif
-	#if UART4_PROTOCOL_RESOLVER && UART4_DMA_RECEIVER
-		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			UART4_Resolver->Protocol_Put(UART4_Resolver,data,cnt);  
-	#endif
-}
+ 
 /* USER CODE END 0 */
 
 int main(void)
@@ -144,11 +118,12 @@ int main(void)
   Log_Init();
   ComBuff_Init(); 
   
-  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
-  TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
-  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode);
-  TaskTime_Add(TaskID++, TimeCycle(0,1), ReportAngle, Count_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Real_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Real_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Real_Mode);
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Real_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(0,1), ReportAngle, Real_Mode);
+  printf("main done\r\n"); 
   /* USER CODE END 2 */
 
   /* Infinite loop */
