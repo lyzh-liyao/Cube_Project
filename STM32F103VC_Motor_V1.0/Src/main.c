@@ -90,35 +90,7 @@ void LED_TEST(void){
 }
 
  
-//持续传输发送者缓冲区中的缓冲数据
-void SenderKeepTransmit(void){
-  Uart1_DMA_Sender.KeepTransmit(&Uart1_DMA_Sender);
-}
-
-void PaddingProtocol(void){
-	#define BUFFSIZE 100
-	int8_t cnt = 0;
-	uint8_t data[BUFFSIZE] = {0};  
-	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
-    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-      ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
-  #endif
-	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
-		if((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,data,cnt);  
-	#endif
-	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
-		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);  
-	#endif
-	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
-		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
-	#endif
-}
-
-void Test(void){  
-  return;
+void Test(void){   
   static uint8_t f = 0;
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, (GPIO_PinState)f); 
   f = ~f;
@@ -169,7 +141,7 @@ int main(void)
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
-	TaskTime_Add(TaskID++, TimeCycle(1,0), Test, Count_Mode); 
+//	TaskTime_Add(TaskID++, TimeCycle(1,0), Test, Count_Mode); 
 	//-----------自检-----------------------------
   Self_Inspection_TaskID = TaskTime_Add(TaskID++, TimeCycle(1,0), Board_Self_Inspection, Count_Mode); 
   //------------------------扫描电机限位情况----------------------------

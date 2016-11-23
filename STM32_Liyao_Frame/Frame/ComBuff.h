@@ -100,7 +100,7 @@ extern void ComBuff_Init(void);
 extern void ComBuff_Configuration(void);
 
 
-extern __weak void PaddingProtocol(void);
-extern __weak void SenderKeepTransmit(void);
+extern void PaddingProtocol(void);
+extern void SenderKeepTransmit(void);
 #endif
 

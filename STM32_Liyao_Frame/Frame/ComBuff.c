@@ -148,7 +148,7 @@ static int8_t _Write(DMA_Sender_T* uds,uint8_t* data, uint8_t len){
 	作者:		liyao 2016年9月14日10:55:07
 ****************************************************/
 static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data){ 
-	while(uds->OverFlag); 
+	while(uds->OverFlag) ;
     uds->Data = MALLOC(1); 
     MALLOC_CHECK(uds->Data,"_Write");
     uds->Data[0] = data;

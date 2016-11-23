@@ -1,13 +1,13 @@
 #include "ProtocolHandle.h" 
 #include "ComBuff.h" 
-#include <iar_dlmalloc.h>
+//#include <iar_dlmalloc.h>
 #include "MotorWingDriver.h"
 #include "MotorHeadDriver.h"
 #include <stdlib.h>
 #include <string.h>
 
 void Heap_Use(Protocol_Info_T* pi){
-  __iar_dlmalloc_stats();
+//  __iar_dlmalloc_stats();
 }
  
 //###################################协议校验函数区###################################

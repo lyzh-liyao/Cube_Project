@@ -1,10 +1,11 @@
 #include "ProtocolHandle.h"
 #include <stdio.h>
 #include "ComBuff.h" 
-#include <iar_dlmalloc.h>
+//#include <iar_dlmalloc.h>
 
 void Heap_Use(Protocol_Info_T* pi){
-  __iar_dlmalloc_stats();
+  //__iar_dlmalloc_stats();
+	printf("±»×¢ÊÍ\r\n");
 }
  
 void HeartBeat_P_Handle(Protocol_Info_T* pi){
