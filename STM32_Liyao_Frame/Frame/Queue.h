@@ -39,6 +39,8 @@ extern void Queue_Free(QUEUE_T* queue);
 
 //###################################动态内存队列相关函数################################### 
 /*每个节点12字节开销*/
+
+typedef uint8_t (*Compare)(void* Data, uint16_t Len);
 typedef struct _Queue_Pack_T Queue_Pack_T; 
 struct _Queue_Pack_T{
 	void* Data;
@@ -57,6 +59,7 @@ extern Queue_Head_T* Queue_Link_Init(uint16_t Size);
 extern int8_t Queue_Link_Put(Queue_Head_T* Queue_Head,void* Data, uint16_t Len);
 extern uint16_t Queue_Link_OutSize(Queue_Head_T* Queue_Head);
 extern int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data);
+extern uint8_t Queue_Link_Update(Queue_Head_T* Queue_Head,void* Data, uint16_t Len, Compare cmp);
 extern void Queue_Link_Free(Queue_Head_T* Queue_Head);
 
 

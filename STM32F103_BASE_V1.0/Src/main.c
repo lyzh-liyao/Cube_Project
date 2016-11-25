@@ -77,14 +77,12 @@ void LED_TEST(void){
   //Protocol_Send(REPORT_STATE, &psd, 1);
 }
 
-  
 /* USER CODE END 0 */
 
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
-
+  /* USER CODE BEGIN 1 */ 
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -111,8 +109,7 @@ int main(void)
   TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
-   
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode);  
   /* USER CODE END 2 */
 
   /* Infinite loop */

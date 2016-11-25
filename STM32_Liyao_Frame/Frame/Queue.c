@@ -239,6 +239,26 @@ int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data){
 }
 
 /****************************************************
+	函数名:Queue_Link_Update
+	功能:	更新队列指定元素数据
+	作者:	liyao 2016年11月25日
+****************************************************/
+typedef uint8_t (*Compare)(void* Data, uint16_t Len);
+uint8_t Queue_Link_Update(Queue_Head_T* Queue_Head,void* Data, uint16_t Len, Compare cmp){
+	Queue_Pack_T* tmp_pack = Queue_Head->Out;
+	while(tmp_pack != NULL){
+		if(cmp(tmp_pack->Data, tmp_pack->Len)){
+			REALLOC(tmp_pack->Data, Len); 
+			MALLOC_CHECK(tmp_pack->Data, "Queue_Link_Update"); 
+			memcpy(tmp_pack->Data, Data, Len);
+			return 1;
+		}
+		tmp_pack = tmp_pack->Next;
+	}
+	return 0;
+}
+
+/****************************************************
 	函数名:Queue_Link_Free
 	功能:	释放队列
 	作者:	liyao 2016年10月26日

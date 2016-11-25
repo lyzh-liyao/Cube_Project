@@ -125,6 +125,7 @@ static int8_t _Write(DMA_Sender_T* uds,uint8_t* data, uint8_t len){
   }
   uint16_t cnt = 0;
   if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
+    Queue_Link_Put(uds->DMA_Send_Queue, data, len); 
     uds->Data = MALLOC(cnt); 
     MALLOC_CHECK(uds->Data,"_Write");
     Queue_Link_Get(uds->DMA_Send_Queue, uds->Data);

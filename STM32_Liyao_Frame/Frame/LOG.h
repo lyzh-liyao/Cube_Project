@@ -25,6 +25,7 @@ extern void Log_Init(void);
 //#define CALLOC(len, size) os_malloc(len)
 //#define FREE(point) os_free(point)
 #define MALLOC(len) malloc(len%2?len+1:len)
+#define REALLOC(p,len) realloc(p, len%2?len+1:len)
 #define CALLOC(len, size) malloc(len%2?len+1:len) 
 //#define MALLOC(len) malloc(len)
 //#define CALLOC(len, size) malloc(len) 
