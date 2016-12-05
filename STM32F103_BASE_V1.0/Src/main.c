@@ -47,8 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-/* USER CODE BEGIN PV */
-#define AS5600_RAW_ANGLE_H 0x0c //没有处理过的角度
+/* USER CODE BEGIN PV */ 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE END PV */
@@ -62,19 +61,10 @@ void Error_Handler(void);
 
 /* USER CODE END PFP */
 
-/* USER CODE BEGIN 0 */
-uint8_t m_data = 0;
-
-
-uint8_t addr = 0; 
+/* USER CODE BEGIN 0 */ 
 void LED_TEST(void){
-  static uint8_t seq = 0;
-//  uint8_t data[100] = "123456\r\n";
-//  Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, 8);
-//  memset(data, 0, 8);  
-  //PRINT_HEAP();
-  printf("LED_TEST:%d\r\n", seq++); 
-  //Protocol_Send(REPORT_STATE, &psd, 1);
+  static uint8_t seq = 0; 
+  printf("LED_TEST:%d\r\n", seq++);  
 }
 
 /* USER CODE END 0 */

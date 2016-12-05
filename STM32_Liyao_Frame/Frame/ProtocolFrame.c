@@ -342,10 +342,12 @@ static uint16_t IsShift(uint8_t* Data){
 ****************************************************/
 static uint8_t getCheckSum_ByProtocolInfo(Protocol_Info_T* pi){
 	uint8_t i, sum = 0; 
+#if PROTOCOL_VERSION == 2
   sum += pi->Standby1;
   sum += pi->Plen;
   sum += pi->Module;
   sum += pi->Serial;
+#endif
   sum += pi->Action;
   for(i = 0; i < pi->ParaLen; i++)
     sum+=((uint8_t*)pi->ParameterList)[i];  
@@ -529,6 +531,7 @@ void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){
 	pi.ParameterList = MALLOC(Len);
 	MALLOC_CHECK(pi.ParameterList, "Protocol_Send"); 
 	pi.ProtocolDesc = Get_Protocol_Description(ModuleAction, SEND);
+	pi.ParaLen = Len;
 	pi.Head = 0xFD;
 	pi.Plen = Len + 3;//参数个数+3   帧长度
 	pi.Module = ModuleAction >> 8; 

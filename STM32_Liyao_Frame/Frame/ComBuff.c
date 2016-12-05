@@ -49,7 +49,7 @@ static int8_t _KeepTransmit(DMA_Sender_T* uds);
 	功能:		初始化发送者
 	作者:		liyao 2016年11月16日
 ****************************************************/
-static void DMA_Sender_Init(DMA_Sender_T* Uart_DMA_Sender, UART_HandleTypeDef* huart){
+void DMA_Sender_Init(DMA_Sender_T* Uart_DMA_Sender, UART_HandleTypeDef* huart){
   Uart_DMA_Sender->DMA_Send_Queue = Queue_Link_Init(0);
   Uart_DMA_Sender->Uart = huart;
   Uart_DMA_Sender->Write = _Write;

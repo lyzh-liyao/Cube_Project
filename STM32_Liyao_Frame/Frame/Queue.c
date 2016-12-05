@@ -242,8 +242,7 @@ int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data){
 	函数名:Queue_Link_Update
 	功能:	更新队列指定元素数据
 	作者:	liyao 2016年11月25日
-****************************************************/
-typedef uint8_t (*Compare)(void* Data, uint16_t Len);
+****************************************************/ 
 uint8_t Queue_Link_Update(Queue_Head_T* Queue_Head,void* Data, uint16_t Len, Compare cmp){
 	Queue_Pack_T* tmp_pack = Queue_Head->Out;
 	while(tmp_pack != NULL){
