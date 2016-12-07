@@ -344,6 +344,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
         功能:   DMA接收完成中断 回调
         作者:   liyao 2016年9月14日10:55:11
 ****************************************************/ 
+#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   #ifdef UART1_DMA_RECEIVER
     if(huart == Uart1_DMA_Receiver.Uart){
@@ -374,7 +375,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
     } 
   #endif      
 }
-
+#endif
 //--------------------------------快捷调用-------------------------------------
 /****************************************************
         函数名: SenderKeepTransmit
