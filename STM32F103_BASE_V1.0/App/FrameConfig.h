@@ -10,7 +10,7 @@
 #define PROTOCOL_RESOLVER_1 1//串口数据解析者
 #define PROTOCOL_RESOLVER_2 1
 
-
+#define PROTOCOL_CHECKSUM 0
 #define LOG_OUT 1
 #define PROTOCOL_VERSION  1  //1 E01老版本协议  2 E01S新版本协议
 #define PROTOCOL_CHECKSUM 0  //校验和是否生效

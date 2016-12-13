@@ -9,6 +9,11 @@
 #include "Queue.h"   
 #define TRUE 1
 #define FALSE 0
+
+
+#define BSET(offset) (1 << offset)			//offset位置1其余0
+#define BRESET()		 (~(1 << offset))		//offset位置0其余1
+
 /**************************************************** 
 	功能: 	向串口发送数据(阻塞)
 ****************************************************/

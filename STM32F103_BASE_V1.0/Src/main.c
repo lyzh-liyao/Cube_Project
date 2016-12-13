@@ -47,7 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-/* USER CODE BEGIN PV */ 
+/* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE END PV */
@@ -61,7 +61,7 @@ void Error_Handler(void);
 
 /* USER CODE END PFP */
 
-/* USER CODE BEGIN 0 */ 
+/* USER CODE BEGIN 0 */
 void LED_TEST(void){
   static uint8_t seq = 0; 
   printf("LED_TEST:%d\r\n", seq++);  
@@ -72,7 +72,7 @@ void LED_TEST(void){
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */ 
+  /* USER CODE BEGIN 1 */
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -87,7 +87,6 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
-  MX_USART2_UART_Init();
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */

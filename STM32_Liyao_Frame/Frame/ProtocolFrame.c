@@ -73,6 +73,8 @@ static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 				break;
 			}
 		}
+		if(pi.Ack != NULL)
+			pi.Ack(&pi);
 		if(pi.Handle != NULL){
 			pi.Handle(&pi);
 		}else{
