@@ -32,6 +32,7 @@ struct _PROTOCOL_DESC_T{
 	void (*Send)(uint8_t* Data, uint8_t Len);
 	void (*Handle)(Protocol_Info_T*);
 	int8_t (*Check)(void*);
+	void (*Ack)(Protocol_Info_T*);
 };
 
 /****************************************************
@@ -52,9 +53,6 @@ struct _PROTOCOL_INFO_T{
 	uint8_t ParaLen;	//参数长度
 	uint8_t AllLen;		//总长度
 	Protocol_Desc_T* ProtocolDesc;//协议描述
-	void (*Handle)(Protocol_Info_T*);
-	void (*Ack)(Protocol_Info_T*);
-	int8_t (*Check)(void*);
 };
 
 

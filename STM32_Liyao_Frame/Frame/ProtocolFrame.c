@@ -67,16 +67,16 @@ static void _clean_recv_buf(Protocol_Resolver_T* pr){
 static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	Protocol_Info_T pi;
 	while(Queue_Link_Get(pr->Protocol_Queue,&pi) == 0){ 
-		if(pi.Check != NULL){
-			if(pi.Check(&pi) < 0){
+		if(pi.ProtocolDesc->Check != NULL){
+			if(pi.ProtocolDesc->Check(&pi) < 0){
 				Log.error("协议校验不通过\r\n");
 				break;
 			}
 		}
-		if(pi.Ack != NULL)
-			pi.Ack(&pi);
-		if(pi.Handle != NULL){
-			pi.Handle(&pi);
+		if(pi.ProtocolDesc->Ack != NULL)
+			pi.ProtocolDesc->Ack(&pi);
+		if(pi.ProtocolDesc->Handle != NULL){
+			pi.ProtocolDesc->Handle(&pi);
 		}else{
 			Log.error("收到协议但是无处理函数\r\n");
 		} 
@@ -289,8 +289,6 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
                   pr->pi.ParameterList = MALLOC(pr->Index);
                   MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
                   memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
-                  pr->pi.Handle = pdt->Handle;
-                  pr->pi.Check = pdt->Check;
                   pr->pi.ProtocolDesc = pdt;
                   break;
                 }
@@ -455,19 +453,18 @@ void ProtocolFrame_Init(){
 #endif
 }
 
+
 /****************************************************
-	函数名:	Protocol_To_Uart
-	功能:		向缓冲区写入待发送至串口
-	参数:		Protocol_Info_T协议描述信息
-	作者:		liyao 2015年9月8日14:10:51
+  函数名:  Protocol_Serialization
+  功能:    将Protocol_Info对象序列化为数组
+  参数:    Protocol_Info_T协议描述信息, 回填数组, 数组大小
+	作者:    liyao 2016年12月14日14:22:44
 ****************************************************/
-int8_t Protocol_To_Uart(Protocol_Info_T* pi){ 
-	uint8_t data[PROTOCOL_SINGLE_BUFF] = {0},i = 0, index = 0; 
-  uint16_t tmpData = 0; 
-  
-  tmpData = pi->Head;
-  data[index++] = tmpData;
-#if PROTOCOL_VERSION == 2
+int8_t Protocol_Serialization(Protocol_Info_T* pi, uint8_t* data, uint8_t len){ 
+	uint8_t index = 0;
+	uint16_t tmpData = 0;
+	data[index++] = pi->Head; 
+	#if PROTOCOL_VERSION == 2
   if((tmpData = IsShift(&pi->Standby1)) > 0){
     data[index++] = tmpData>>8; 
     data[index++] = tmpData&0xff; 
@@ -494,13 +491,12 @@ int8_t Protocol_To_Uart(Protocol_Info_T* pi){
   }  
 #endif
   if((tmpData = IsShift(&pi->Action)) > 0){
-    data[index++] = tmpData>>8; 
+    data[index++] = tmpData>>8;  
     data[index++] = tmpData&0xff; 
   }else{
     data[index++] = pi->Action;
-  }    
-  
-  for(i = 0; i < pi->ParaLen; i++){
+  }
+	for(uint8_t i = 0; i < pi->ParaLen; i++){//处理参数转义
     if((tmpData = IsShift((uint8_t*)pi->ParameterList + i)) > 0){
       data[index++] = tmpData>>8;
       data[index++] = tmpData&0xff;
@@ -508,17 +504,18 @@ int8_t Protocol_To_Uart(Protocol_Info_T* pi){
       data[index++] = ((uint8_t*)pi->ParameterList)[i];
     }
   }
-  if((tmpData = IsShift(&pi->CheckSum)) > 0){
+	if((tmpData = IsShift(&pi->CheckSum)) > 0){
     data[index++] = tmpData>>8; 
     data[index++] = tmpData&0xff; 
   }else{
     data[index++] = pi->CheckSum;
   }  
   data[index++] = pi->Tail; 
-  
-  pi->ProtocolDesc->Send(data, index);
-	return 0;
+  if(index > len)
+    return -1; 
+  return index;
 }
+
 
 //###################################自定义扩展函数区###################################
 /****************************************************
@@ -544,9 +541,18 @@ void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){
 	pi.CheckSum = getCheckSum_ByProtocolInfo(&pi); 
 	pi.Tail = 0xF8;
 	pi.ParaLen = Len;
+	
+	#if PROTOCOL_VERSION == 1
+	pi.AllLen = Len + 4;
+	#elif PROTOCOL_VERSION == 2
 	pi.AllLen = pi.Plen + 5;
-	Protocol_To_Uart(&pi);	
+	#endif
+	uint8_t* data = MALLOC(pi.AllLen);
+	MALLOC_CHECK(data, "Protocol_Send"); 
+	Protocol_Serialization(&pi, data, pi.AllLen);	
+	pi.ProtocolDesc->Send(data, pi.AllLen);
 	FREE(pi.ParameterList);
+	FREE(data);
 }
 
 /****************************************************
@@ -556,7 +562,10 @@ void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){
 	作者:		liyao 2016年9月18日11:51:35
 ****************************************************/
 void Protocol_Send_Transpond(Protocol_Info_T* pi){  
-	Protocol_To_Uart(pi);	
+	uint8_t* data = MALLOC(pi->AllLen);
+	MALLOC_CHECK(data, "Protocol_Send_Transpond"); 
+	Protocol_Serialization(pi, data, pi->AllLen);
+	FREE(data);
 }
 
 /*****************************************************************
