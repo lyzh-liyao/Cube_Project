@@ -241,6 +241,8 @@ static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len){
 			return cnt;
 		}
 	} 
+	if(i == len)
+			return cnt;
 	return -1;
 }
 
@@ -277,6 +279,7 @@ int fputc(int ch,FILE *f)
 //		Queue_Put(Uart_Tx_Queue, &ch); 
 //	#else
   while(HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+	//while(HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
 //	#endif
 	return(ch);	   
 }
