@@ -30,48 +30,5 @@ void Protocol_Init(){
 	pdt.Check = NULL;
 	pdt.Handle = HeartBeat_P_Handle;
 	Protocol_Register(&pdt,RECEIVE);
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_RUN;
-	pdt.Handle = Cmd_Run;
-	Protocol_Register(&pdt,RECEIVE);  
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_R_SPEED;
-	pdt.Handle = Cmd_R_Speed;
-	Protocol_Register(&pdt,RECEIVE);  
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_W_PARA;
-	pdt.Handle = Cmd_W_Para;
-	Protocol_Register(&pdt,RECEIVE);  
-
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_R_PARA;
-	pdt.Handle = Cmd_R_Para;
-	Protocol_Register(&pdt,RECEIVE); 
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_R_PWR;
-	pdt.Handle = Cmd_R_Pwr;
-	Protocol_Register(&pdt,RECEIVE); 
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_R_STATE;
-	pdt.Handle = Cmd_R_State;
-	Protocol_Register(&pdt,RECEIVE); 
-  
-  memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(CMD_PROTOCOL_T);
-	pdt.ModuleAction = CMD_R_SN;
-	pdt.Handle = Cmd_R_Sn;
-	Protocol_Register(&pdt,RECEIVE); 
-  
 }
 
