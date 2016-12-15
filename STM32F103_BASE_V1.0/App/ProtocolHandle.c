@@ -11,6 +11,7 @@ void Heap_Use(Protocol_Info_T* pi){
 void HeartBeat_P_Handle(Protocol_Info_T* pi){
 	HeartBeat_P_T* hp = pi->ParameterList;
 	printf("ÊÕµ½ÐÄÌø:%d\r\n", hp->para1); 
+	Protocol_Send_Transpond(pi);
 //	Uart1_DMA_Sender.WriteByte(&Uart1_DMA_Sender,'C');
 }
  

@@ -8,7 +8,7 @@
  
  
 void Send(uint8_t* data, uint8_t len){
-	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, len);
+	Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, len);
 }
  
 

@@ -64,7 +64,10 @@ void Error_Handler(void);
 /* USER CODE BEGIN 0 */
 void LED_TEST(void){
   static uint8_t seq = 0; 
-  printf("LED_TEST:%d\r\n", seq++);  
+  //printf("LED_TEST:%d\r\n", seq++); 
+	State_P_T state = {0};
+	state.para1 = 32;
+	//Protocol_Send(REPORT_STATE, &state, sizeof(State_P_T));
 }
 
 /* USER CODE END 0 */

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len);
 //#define PRINT_ERR
 //###################################对外变量区###################################
 //Protocol_Info_T protocol_send_infos[SEND_PROTOCOL_NUM] = {0};//发送协议栈
@@ -84,234 +84,6 @@ static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	}
 }
 
-#if PROTOCOL_VERSION == 2
-/****************************************************
-	函数名:	Protocol_Put
-	功能:		接收协议数据并解析封装
-	参数:		协议数据
-	注意: 	通过protocol_flag标志位标示是否解析出新的协议
-	作者:		liyao 2015年9月8日14:10:51
-****************************************************/
-static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
-	uint8_t i, data; 
-	uint16_t src_board_action;
-	List_Node_T* Cur_Node = Recv_Desc_P->Head;
-	
-	for(i = 0; i < len; i++){ 
-		data = datas[i];
-    if(pr->pi.Head != 0xFD && data != 0xFD)
-      return -1;
-		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
-			_clean_recv_buf(pr);
-			Log.error("协议中途出现0xFD\r\n");
-			return -1;
-		}
-		if(data == 0xFE){//处理转义
-			pr->Is_FE = 1;
-			continue;
-		}else if(pr->Is_FE){
-			switch(data){
-				case 0x7D: data = 0xFD;break;
-				case 0x78: data = 0xF8;break;
-				case 0x7E: data = 0xFE;break;
-			} 
-			pr->Is_FE = 0;
-		}
-			
-		if(pr->Recv_State > 0 && pr->Recv_State < 7)//排除帧头帧尾计算校验和
-			pr->CheckSum += data;
-	//协议解析状态机
-		switch(pr->Recv_State){
-			case 0:	//处理帧头
-						pr->pi.Head = data;
-						pr->Recv_State++; 
-						break;
-			case 1:	//处理预留位
-						pr->pi.Standby1 = data;
-						pr->Recv_State++; 
-						break;
-			case 2: //处理帧长(从ID到数据位最后一个)
-						pr->Recv_State++; 
-						pr->pi.Plen = data;
-						if(data < 4){
-							_clean_recv_buf(pr);
-							Log.error("处理帧长错误\r\n");
-							return -2;
-						}
-						else
-							pr->Cnt = pr->pi.ParaLen = data - 3;//计算结果为参数个数
-							pr->pi.AllLen = data + 5;//计算结果为协议总长度包括FD、F8
-						break;
-			case 3: //处理目标板
-						pr->pi.Module = data;
-						pr->Recv_State++; 
-						break;
-			case 4: //处理编号
-						pr->pi.Serial = data;
-						pr->Recv_State++; 
-						break;
-			case 5: //处理指令码(ACTION)
-						pr->pi.Action = data;
-						pr->Recv_State++; 
-						break;
-			case 6: //处理参数 
-						pr->ParaData[pr->Index++] = data;
-						//((uint8_t *)(&pr->pi.ParameterList))[pr->index++] = data;  
-						if(--pr->Cnt == 0)
-							pr->Recv_State++;
-						break;
-			case 7: //处理校验和校验  
-						pr->pi.CheckSum = data;
-            #ifdef PROTOCOL_CHECKSUM
-              pr->Recv_State++; 
-              break;
-            #endif
-						/*校验和暂时关闭*/
-						if(((uint8_t)pr->CheckSum & 0xff) != data){
-              uint8_t mess[50] = {0};
-              sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
-							Log.error((char const*)mess);
-							_clean_recv_buf(pr);
-							return -3;
-						}else{ 
-							pr->Recv_State++; 
-						} 
-						break;
-			case 8: //处理帧尾 帧类型和长度进行匹配 
-						if(data != 0xF8){
-							_clean_recv_buf(pr);
-							Log.error("帧尾位置非0xF8错误\r\n");
-							return -4;
-						}
-						pr->pi.Tail = data;
-						src_board_action = pr->pi.Module << 8 | pr->pi.Action;
-
-						while(Cur_Node != NULL){
-							Protocol_Desc_T* pdt = Cur_Node->Data;
-							if(	src_board_action ==  pdt->ModuleAction &&//目标板匹配,动作匹配 
-									pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
-							{
-								pr->pi.ParameterList = MALLOC(pr->Index);
-								MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
-								memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
-								pr->pi.Handle = pdt->Handle;
-								pr->pi.Check = pdt->Check;
-								pr->pi.ProtocolDesc = pdt;
-								break;
-							}
-							Cur_Node = Cur_Node->Next;
-						}
-						 
-						if(Cur_Node == NULL){//校验不通过 
-							FREE(pr->pi.ParameterList);
-							_clean_recv_buf(pr);
-							Log.error("现有协议库无匹配当前协议\r\n");
-							return -5;
-						}else{
-							Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
-              //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
-							_clean_recv_buf(pr); 
-						}
-						break;
-		}
-	}; 
-	return 0;
-}
-#elif PROTOCOL_VERSION == 1
-/****************************************************
-	函数名:	Protocol_Put
-	功能:		接收协议数据并解析封装
-	参数:		协议数据
-	注意: 	通过protocol_flag标志位标示是否解析出新的协议
-	作者:		liyao 2015年9月8日14:10:51
-****************************************************/
-static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
-	uint8_t i, data;
-	List_Node_T* Cur_Node = Recv_Desc_P->Head;
-	
-	for(i = 0; i < len; i++){
-		data = datas[i];
-    if(pr->pi.Head != 0xFD && data != 0xFD)
-      return -1;
-		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
-			_clean_recv_buf(pr);
-			Log.error("协议中途出现0xFD\r\n");
-			return -1;
-		}
-		if(data == 0xFE){//处理转义
-			pr->Is_FE = 1;
-			continue;
-		}else if(pr->Is_FE){
-			switch(data){
-				case 0x7D: data = 0xFD;break;
-				case 0x78: data = 0xF8;break;
-				case 0x7E: data = 0xFE;break;
-			} 
-			pr->Is_FE = 0;
-		} 
-	//协议解析状态机
-		switch(pr->Recv_State){
-			case 0:	//处理帧头
-						pr->pi.Head = data;
-						pr->Recv_State++; 
-						break;
-			case 1:	//处理帧类型
-						pr->pi.Action = data;
-						pr->Recv_State++; 
-						break;
-			case 2: //处理参数 至 帧尾
-						pr->ParaData[pr->Index++] = data; 
-            if(data == 0xF8){
-              //校验和处理 
-              pr->pi.ParaLen = pr->Index - 2;
-              pr->pi.CheckSum = pr->ParaData[pr->Index-2];//倒数第二个值为校验和  
-              for(uint8_t j = 0; j < pr->pi.ParaLen;j++)
-                pr->CheckSum += pr->ParaData[j];
-              pr->CheckSum += pr->pi.Action;
-              
-              #if PROTOCOL_CHECKSUM == 1
-              if(((uint8_t)pr->CheckSum & 0xff) != pr->pi.CheckSum){
-                uint8_t mess[50] = {0};
-                sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
-                Log.error((char const*)mess);
-                _clean_recv_buf(pr);
-                return -3;
-              }
-              #endif              
-              //帧尾处理
-              pr->pi.Tail = data;
-              //协议匹配处理
-              while(Cur_Node != NULL){
-                Protocol_Desc_T* pdt = Cur_Node->Data;
-                if(	pr->pi.Action ==  (pdt->ModuleAction & 0xff) &&//目标板匹配,动作匹配 
-                    pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
-                {
-                  pr->pi.ParameterList = MALLOC(pr->Index);
-                  MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
-                  memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
-                  pr->pi.ProtocolDesc = pdt;
-                  break;
-                }
-                Cur_Node = Cur_Node->Next;
-              }
-              //匹配结果处理 
-              if(Cur_Node == NULL){//校验不通过 
-                FREE(pr->pi.ParameterList);
-                _clean_recv_buf(pr);
-                Log.error("现有协议库无匹配当前协议\r\n");
-                return -5;
-              }else{
-                Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
-                //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
-                _clean_recv_buf(pr); 
-              } 
-            }
-						break; 					
-		}
-	}; 
-	return 0;
-}
-#endif
 /****************************************************
 	函数名:	IsShift
 	参数:		原字符
@@ -565,6 +337,7 @@ void Protocol_Send_Transpond(Protocol_Info_T* pi){
 	uint8_t* data = MALLOC(pi->AllLen);
 	MALLOC_CHECK(data, "Protocol_Send_Transpond"); 
 	Protocol_Serialization(pi, data, pi->AllLen);
+	pi->ProtocolDesc->Send(data, pi->AllLen);
 	FREE(data);
 }
 
@@ -587,3 +360,233 @@ void FetchProtocols(void)
 		ProtocolResolver_4->Fetch_Protocol(ProtocolResolver_4);
 	#endif
 }
+
+#if PROTOCOL_VERSION == 1
+/****************************************************
+	函数名:	Protocol_Put
+	功能:		接收协议数据并解析封装
+	参数:		协议数据
+	注意: 	通过protocol_flag标志位标示是否解析出新的协议
+	作者:		liyao 2015年9月8日14:10:51
+****************************************************/
+static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
+	uint8_t i, data;
+	List_Node_T* Cur_Node = Recv_Desc_P->Head;
+	
+	for(i = 0; i < len; i++){
+		data = datas[i];
+    if(pr->pi.Head != 0xFD && data != 0xFD)
+      return -1;
+		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
+			_clean_recv_buf(pr);
+			Log.error("协议中途出现0xFD\r\n");
+			return -1;
+		}
+		if(data == 0xFE){//处理转义
+			pr->Is_FE = 1;
+			continue;
+		}else if(pr->Is_FE){
+			switch(data){
+				case 0x7D: data = 0xFD;break;
+				case 0x78: data = 0xF8;break;
+				case 0x7E: data = 0xFE;break;
+			} 
+			pr->Is_FE = 0;
+		} 
+	//协议解析状态机
+		switch(pr->Recv_State){
+			case 0:	//处理帧头
+						pr->pi.Head = data;
+						pr->Recv_State++; 
+						break;
+			case 1:	//处理帧类型
+						pr->pi.Action = data;
+						pr->Recv_State++; 
+						break;
+			case 2: //处理参数 至 帧尾
+						pr->ParaData[pr->Index++] = data; 
+            if(data == 0xF8){
+              //校验和处理 
+              pr->pi.ParaLen = pr->Index - 2;
+              pr->pi.CheckSum = pr->ParaData[pr->Index-2];//倒数第二个值为校验和  
+              for(uint8_t j = 0; j < pr->pi.ParaLen;j++)
+                pr->CheckSum += pr->ParaData[j];
+              pr->CheckSum += pr->pi.Action;
+              
+              #if PROTOCOL_CHECKSUM == 1
+              if(((uint8_t)pr->CheckSum & 0xff) != pr->pi.CheckSum){
+                uint8_t mess[50] = {0};
+                sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
+                Log.error((char const*)mess);
+                _clean_recv_buf(pr);
+                return -3;
+              }
+              #endif              
+              //帧尾处理
+              pr->pi.Tail = data;
+              //协议匹配处理
+              while(Cur_Node != NULL){
+                Protocol_Desc_T* pdt = Cur_Node->Data;
+                if(	pr->pi.Action ==  (pdt->ModuleAction & 0xff) &&//目标板匹配,动作匹配 
+                    pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
+                { 
+									pr->pi.AllLen = pr->pi.ParaLen + 4;
+                  pr->pi.ParameterList = MALLOC(pr->Index);
+                  MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
+                  memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
+                  pr->pi.ProtocolDesc = pdt;
+                  break;
+                }
+                Cur_Node = Cur_Node->Next;
+              }
+              //匹配结果处理 
+              if(Cur_Node == NULL){//校验不通过 
+                FREE(pr->pi.ParameterList);
+                _clean_recv_buf(pr);
+                Log.error("现有协议库无匹配当前协议\r\n");
+                return -5;
+              }else{
+                Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
+                //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
+                _clean_recv_buf(pr); 
+              } 
+            }
+						break; 					
+		}
+	}; 
+	return 0;
+}
+#elif PROTOCOL_VERSION == 2
+/****************************************************
+	函数名:	Protocol_Put
+	功能:		接收协议数据并解析封装
+	参数:		协议数据
+	注意: 	通过protocol_flag标志位标示是否解析出新的协议
+	作者:		liyao 2015年9月8日14:10:51
+****************************************************/
+static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
+	uint8_t i, data; 
+	uint16_t src_board_action;
+	List_Node_T* Cur_Node = Recv_Desc_P->Head;
+	
+	for(i = 0; i < len; i++){ 
+		data = datas[i];
+    if(pr->pi.Head != 0xFD && data != 0xFD)
+      return -1;
+		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
+			_clean_recv_buf(pr);
+			Log.error("协议中途出现0xFD\r\n");
+			return -1;
+		}
+		if(data == 0xFE){//处理转义
+			pr->Is_FE = 1;
+			continue;
+		}else if(pr->Is_FE){
+			switch(data){
+				case 0x7D: data = 0xFD;break;
+				case 0x78: data = 0xF8;break;
+				case 0x7E: data = 0xFE;break;
+			} 
+			pr->Is_FE = 0;
+		}
+			
+		if(pr->Recv_State > 0 && pr->Recv_State < 7)//排除帧头帧尾计算校验和
+			pr->CheckSum += data;
+	//协议解析状态机
+		switch(pr->Recv_State){
+			case 0:	//处理帧头
+						pr->pi.Head = data;
+						pr->Recv_State++; 
+						break;
+			case 1:	//处理预留位
+						pr->pi.Standby1 = data;
+						pr->Recv_State++; 
+						break;
+			case 2: //处理帧长(从ID到数据位最后一个)
+						pr->Recv_State++; 
+						pr->pi.Plen = data;
+						if(data < 4){
+							_clean_recv_buf(pr);
+							Log.error("处理帧长错误\r\n");
+							return -2;
+						}
+						else
+							pr->Cnt = pr->pi.ParaLen = data - 3;//计算结果为参数个数
+							pr->pi.AllLen = data + 5;//计算结果为协议总长度包括FD、F8
+						break;
+			case 3: //处理目标板
+						pr->pi.Module = data;
+						pr->Recv_State++; 
+						break;
+			case 4: //处理编号
+						pr->pi.Serial = data;
+						pr->Recv_State++; 
+						break;
+			case 5: //处理指令码(ACTION)
+						pr->pi.Action = data;
+						pr->Recv_State++; 
+						break;
+			case 6: //处理参数 
+						pr->ParaData[pr->Index++] = data;
+						//((uint8_t *)(&pr->pi.ParameterList))[pr->index++] = data;  
+						if(--pr->Cnt == 0)
+							pr->Recv_State++;
+						break;
+			case 7: //处理校验和校验  
+						pr->pi.CheckSum = data;
+            #ifdef PROTOCOL_CHECKSUM
+              pr->Recv_State++; 
+              break;
+            #endif
+						/*校验和暂时关闭*/
+						if(((uint8_t)pr->CheckSum & 0xff) != data){
+              uint8_t mess[50] = {0};
+              sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
+							Log.error((char const*)mess);
+							_clean_recv_buf(pr);
+							return -3;
+						}else{ 
+							pr->Recv_State++; 
+						} 
+						break;
+			case 8: //处理帧尾 帧类型和长度进行匹配 
+						if(data != 0xF8){
+							_clean_recv_buf(pr);
+							Log.error("帧尾位置非0xF8错误\r\n");
+							return -4;
+						}
+						pr->pi.Tail = data;
+						src_board_action = pr->pi.Module << 8 | pr->pi.Action;
+
+						while(Cur_Node != NULL){
+							Protocol_Desc_T* pdt = Cur_Node->Data;
+							if(	src_board_action ==  pdt->ModuleAction &&//目标板匹配,动作匹配 
+									pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
+							{
+								pr->pi.AllLen = pr->pi.Plen + 5;
+								pr->pi.ParameterList = MALLOC(pr->Index);
+								MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
+								memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
+								pr->pi.ProtocolDesc = pdt;
+								break;
+							}
+							Cur_Node = Cur_Node->Next;
+						}
+						 
+						if(Cur_Node == NULL){//校验不通过 
+							FREE(pr->pi.ParameterList);
+							_clean_recv_buf(pr);
+							Log.error("现有协议库无匹配当前协议\r\n");
+							return -5;
+						}else{
+							Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
+              //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
+							_clean_recv_buf(pr); 
+						}
+						break;
+		}
+	}; 
+	return 0;
+} 
+#endif
+
