@@ -83,9 +83,13 @@ void SetPWM(uint16_t Pwm){
 }
 void LED_TEST(void){
   static uint8_t seq = 0; 
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (GPIO_PinState)seq%2);
+	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (GPIO_PinState)seq%2);
+	seq++;
 	static uint16_t pwm = 0;
 	pwm+=100;
-  printf("LED_TEST:%d, %d\r\n", seq++, pwm);  
+  printf("LED_TEST:%d, %d\r\n", seq, pwm);  
+	printf("ENC:%d,%d\r\n", htim3.Instance->CNT, htim4.Instance->CNT);
 	if(pwm > 999)
 		pwm = 0;
 	SetPWM(pwm);
@@ -116,7 +120,7 @@ int main(void)
   MX_TIM4_Init();
 
   /* USER CODE BEGIN 2 */
-	__HAL_AFIO_REMAP_SWJ_NONJTRST();
+//	__HAL_AFIO_REMAP_SWJ_NONJTRST();
   TaskTime_Init();
   ProtocolFrame_Init();
   Log_Init();
@@ -126,7 +130,9 @@ int main(void)
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
-	HAL_TIM_Base_Start(&htim2);
+	HAL_TIM_Base_Start(&htim2); 
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL); 
   /* USER CODE END 2 */
 
   /* Infinite loop */

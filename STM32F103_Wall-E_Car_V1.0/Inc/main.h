@@ -47,6 +47,8 @@
 #define M2_PWM_GPIO_Port GPIOA
 #define M2_DIR_Pin GPIO_PIN_1
 #define M2_DIR_GPIO_Port GPIOB
+#define LED1_Pin GPIO_PIN_12
+#define LED1_GPIO_Port GPIOA
 #define M1_ENC_A_Pin GPIO_PIN_4
 #define M1_ENC_A_GPIO_Port GPIOB
 #define M1_ENC_2_Pin GPIO_PIN_5
