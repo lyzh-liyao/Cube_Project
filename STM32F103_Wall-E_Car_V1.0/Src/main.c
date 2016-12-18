@@ -42,6 +42,7 @@
 #include "TaskTimeManager.h"
 #include "ProtocolFrame.h"
 #include "ComBuff.h" 
+#include "MotorControl.h"
 
 /* USER CODE END Includes */
 
@@ -63,36 +64,31 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN 0 */
 
-void SetPWM(uint16_t Pwm){
+void SetPWM(TIM_HandleTypeDef *htim, uint32_t Channel, uint16_t Pwm){
   TIM_OC_InitTypeDef sConfigOC;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = Pwm;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, Channel) != HAL_OK)
   {
     Error_Handler();
   }
-	if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-	
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	 
+	HAL_TIM_PWM_Start(htim, Channel); 
 }
 void LED_TEST(void){
   static uint8_t seq = 0; 
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (GPIO_PinState)seq%2);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (GPIO_PinState)(seq%2));
 	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (GPIO_PinState)seq%2);
 	seq++;
 	static uint16_t pwm = 0;
-	pwm+=100;
-  printf("LED_TEST:%d, %d\r\n", seq, pwm);  
-	printf("ENC:%d,%d\r\n", htim3.Instance->CNT, htim4.Instance->CNT);
-	if(pwm > 999)
-		pwm = 0;
-	SetPWM(pwm);
+//	pwm+=100;
+//  printf("LED_TEST:%d, %d\r\n", seq, pwm);  
+//	printf("ENC:%d,%d\r\n", htim3.Instance->CNT, htim4.Instance->CNT);
+//	if(pwm > 999)
+//		pwm = 0;
+	//SetPWM(pwm);
 }
 
 /* USER CODE END 0 */
@@ -118,6 +114,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
 //	__HAL_AFIO_REMAP_SWJ_NONJTRST();
@@ -125,20 +122,25 @@ int main(void)
   ProtocolFrame_Init();
   Log_Init();
   ComBuff_Init(); 
-//  HAL_UART_Receive_DMA(&huart2, Uart2_DMA_Receiver.Data, 1024); 
-  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
+	
+	
+	Motor_Init();				//驱动电机初始化  
+	
+  //TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
-	HAL_TIM_Base_Start(&htim2); 
-	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL); 
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 	
+	//------------电机PID控制----------------------
+	TaskTime_Add(TaskID++, TimeCycle(0,75), Motor_PID, Real_Mode); 
+	
+//	motor_L->Motor_Run(motor_L, MOTOR_UP, 20);
+//	motor_R->Motor_Run(motor_R, MOTOR_UP, 20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+  {//*
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

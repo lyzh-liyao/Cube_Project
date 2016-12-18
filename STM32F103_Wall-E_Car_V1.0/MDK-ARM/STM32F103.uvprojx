@@ -351,7 +351,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -373,7 +373,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;             ../Drivers/STM32F1xx_HAL_Driver/Inc;             ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;             ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;             ../Drivers/CMSIS/Include;             ..\App;             ..\..\STM32_Liyao_Frame\Frame;             ..\Device</IncludePath>
+              <IncludePath>../Inc;                     ../Drivers/STM32F1xx_HAL_Driver/Inc;                     ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;                     ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;                     ../Drivers/CMSIS/Include;                     ..\App;                     ..\..\STM32_Liyao_Frame\Frame;                     ..\Device</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -510,6 +510,38 @@
         </Group>
         <Group>
           <GroupName>Device</GroupName>
+          <Files>
+            <File>
+              <FileName>MotorControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\MotorControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>MotorControl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\MotorControl.h</FilePath>
+            </File>
+            <File>
+              <FileName>PID.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\PID.c</FilePath>
+            </File>
+            <File>
+              <FileName>PID.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\PID.h</FilePath>
+            </File>
+            <File>
+              <FileName>Strategy.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\Strategy.c</FilePath>
+            </File>
+            <File>
+              <FileName>Strategy.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\Strategy.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Application/User</GroupName>

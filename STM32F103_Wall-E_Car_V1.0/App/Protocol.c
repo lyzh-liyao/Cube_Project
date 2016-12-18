@@ -37,6 +37,12 @@ void Protocol_Init(){
 	pdt.Check = NULL;
 	pdt.Handle = HeartBeat_P_Handle;
 	Protocol_Register(&pdt,RECEIVE);
+	
+	memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = sizeof(Run_Protocol_T);
+	pdt.ModuleAction = RUN_PROTOCOL;   
+	pdt.Handle = Run_Protocol_Handle;
+	Protocol_Register(&pdt,RECEIVE);
   
 }
 
