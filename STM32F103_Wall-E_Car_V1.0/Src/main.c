@@ -43,6 +43,8 @@
 #include "ProtocolFrame.h"
 #include "ComBuff.h" 
 #include "MotorControl.h"
+#include "oled.h"
+#include "RudderControl.h" 
 
 /* USER CODE END Includes */
 
@@ -81,14 +83,16 @@ void LED_TEST(void){
   static uint8_t seq = 0; 
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (GPIO_PinState)(seq%2));
 	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (GPIO_PinState)seq%2);
-	seq++;
-	static uint16_t pwm = 0;
-//	pwm+=100;
-//  printf("LED_TEST:%d, %d\r\n", seq, pwm);  
-//	printf("ENC:%d,%d\r\n", htim3.Instance->CNT, htim4.Instance->CNT);
-//	if(pwm > 999)
-//		pwm = 0;
-	//SetPWM(pwm);
+	seq++; 
+	OLED_Buff = MALLOC(100);
+	memset(OLED_Buff,0, 100);
+	sprintf(OLED_Buff, "LED_TEST:%d\r\n",seq);
+	OLED_Clear(1,2);
+	OLED_ShowString(0,0,(uint8_t*)OLED_Buff);
+  printf("%s",OLED_Buff);  
+	FREE(OLED_Buff);
+	//RudderX->setRudderAngle(RudderX, seq%100+40);
+	
 }
 
 /* USER CODE END 0 */
@@ -115,6 +119,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART3_UART_Init();
+  MX_TIM8_Init();
 
   /* USER CODE BEGIN 2 */
 //	__HAL_AFIO_REMAP_SWJ_NONJTRST();
@@ -125,13 +130,17 @@ int main(void)
 	
 	
 	Motor_Init();				//驱动电机初始化  
+	OLED_Init();				//OLED液晶初始化
+	Rudder_Init(); 			//舵机初始化
 	
-  //TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(1, 0), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 	
 	//------------电机PID控制----------------------
-	TaskTime_Add(TaskID++, TimeCycle(0,75), Motor_PID, Real_Mode); 
+	TaskTime_Add(TaskID++, TimeCycle(0,75), Motor_PID, Real_Mode);
+	//------------舵机----------------------
+	TaskTime_Add(TaskID++, TimeCycle(0, 10), Rudder_Run, Real_Mode);	
 	
 //	motor_L->Motor_Run(motor_L, MOTOR_UP, 20);
 //	motor_R->Motor_Run(motor_R, MOTOR_UP, 20);

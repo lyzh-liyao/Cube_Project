@@ -373,7 +373,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;                     ../Drivers/STM32F1xx_HAL_Driver/Inc;                     ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;                     ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;                     ../Drivers/CMSIS/Include;                     ..\App;                     ..\..\STM32_Liyao_Frame\Frame;                     ..\Device</IncludePath>
+              <IncludePath>../Inc;    ../Drivers/STM32F1xx_HAL_Driver/Inc;    ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;    ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;    ../Drivers/CMSIS/Include;    ..\App;    ..\..\STM32_Liyao_Frame\Frame;    ..\Device;    ..\Device\OLED</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -540,6 +540,41 @@
               <FileName>Strategy.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Device\Strategy.h</FilePath>
+            </File>
+            <File>
+              <FileName>RudderControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\RudderControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>RudderControl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\RudderControl.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Device/OLED</GroupName>
+          <Files>
+            <File>
+              <FileName>bmp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\bmp.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\OLED\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\oled.h</FilePath>
+            </File>
+            <File>
+              <FileName>oledfont.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\oledfont.h</FilePath>
             </File>
           </Files>
         </Group>
