@@ -4,9 +4,12 @@
 #define DEBUG_USART   huart1 //调试串口
 #define UART1_DMA_SENDER 1   //串口发送者
 #define UART1_DMA_RECEIVER 1 //串口接收者
-#define UART3_DMA_SENDER 1   //串口发送者
-#define UART3_DMA_RECEIVER 1 //串口接收者
+#define UART2_DMA_SENDER 1   //超声波串口发送者
+#define UART2_DMA_RECEIVER 1 //超声波串口接收者
+#define UART3_DMA_SENDER 1   //蓝牙串口发送者
+#define UART3_DMA_RECEIVER 1 //蓝牙串口接收者
 
+#define PROTOCOL_RESOLVER_2 1//串口数据解析者
 #define PROTOCOL_RESOLVER_3 1//串口数据解析者
 //#define PROTOCOL_RESOLVER_2 1
 

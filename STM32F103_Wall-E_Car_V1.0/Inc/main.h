@@ -45,6 +45,10 @@
 #define M1_PWM_GPIO_Port GPIOA
 #define M2_PWM_Pin GPIO_PIN_1
 #define M2_PWM_GPIO_Port GPIOA
+#define ULT_TX_Pin GPIO_PIN_2
+#define ULT_TX_GPIO_Port GPIOA
+#define ULT_RX_Pin GPIO_PIN_3
+#define ULT_RX_GPIO_Port GPIOA
 #define OLED_DC_Pin GPIO_PIN_4
 #define OLED_DC_GPIO_Port GPIOC
 #define M1_DIR_Pin GPIO_PIN_0

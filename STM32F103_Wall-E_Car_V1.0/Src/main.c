@@ -44,8 +44,8 @@
 #include "ComBuff.h" 
 #include "MotorControl.h"
 #include "oled.h"
-#include "RudderControl.h" 
-
+#include "RudderControl.h"  
+#include "UltrasonicControl.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -79,6 +79,37 @@ void SetPWM(TIM_HandleTypeDef *htim, uint32_t Channel, uint16_t Pwm){
 	 
 	HAL_TIM_PWM_Start(htim, Channel); 
 }
+
+/****************************************************
+        函数名: PaddingProtocol
+        功能:   从串口缓冲区中读取数据到协议解析器
+        作者:   liyao 2016年9月14日10:55:11
+****************************************************/ 
+void PaddingProtocol(void){
+	#define BUFFSIZE 100
+	int8_t cnt = 0;
+	uint8_t data[BUFFSIZE] = {0};  
+	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
+    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+      ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
+  #endif
+	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
+		if((cnt = Uart2_DMA_Receiver.Read(&Uart2_DMA_Receiver,data,BUFFSIZE))>0){
+			for(uint8_t i = 0; i < cnt; i++)
+				Ultrasonic_Recv(Ultrasonic, data[i]); 
+		}
+	#endif
+	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
+		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);
+	#endif
+	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
+		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
+	#endif
+}
+
+
 void LED_TEST(void){
   static uint8_t seq = 0; 
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (GPIO_PinState)(seq%2));
@@ -120,6 +151,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART3_UART_Init();
   MX_TIM8_Init();
+  MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
 //	__HAL_AFIO_REMAP_SWJ_NONJTRST();
@@ -141,7 +173,8 @@ int main(void)
 	TaskTime_Add(TaskID++, TimeCycle(0,75), Motor_PID, Real_Mode);
 	//------------舵机----------------------
 	TaskTime_Add(TaskID++, TimeCycle(0, 10), Rudder_Run, Real_Mode);	
-	
+	//------------超声波----------------------
+	TaskTime_Add(TaskID++, TimeCycle(0, 50), Ultrasonic_Run, Real_Mode);
 //	motor_L->Motor_Run(motor_L, MOTOR_UP, 20);
 //	motor_R->Motor_Run(motor_R, MOTOR_UP, 20);
   /* USER CODE END 2 */
