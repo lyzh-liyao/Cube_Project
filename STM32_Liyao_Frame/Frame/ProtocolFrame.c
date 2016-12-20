@@ -477,7 +477,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
 			_clean_recv_buf(pr);
 			Log.error("协议中途出现0xFD\r\n");
-			pr->pi.Head == 0xFD;
+			pr->pi.Head = 0xFD;
 			continue;
 		}
 		if(data == 0xFE){//处理转义
