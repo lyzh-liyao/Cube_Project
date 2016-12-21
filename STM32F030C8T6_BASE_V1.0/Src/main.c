@@ -100,10 +100,14 @@ int main(void)
   
   
   
-  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
+	/*-----------测试调试任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Real_Mode);
+	/*-----------持续传输任务-----------------*/
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
-  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
+	/*-----------协议解析任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Real_Mode);
+	/*-----------协议执行任务-----------------*/
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Real_Mode); 
   /* USER CODE END 2 */
 
   /* Infinite loop */
