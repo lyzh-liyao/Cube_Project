@@ -97,10 +97,14 @@ int main(void)
   ProtocolFrame_Init();
   Log_Init();
   ComBuff_Init(); 
-//  HAL_UART_Receive_DMA(&huart2, Uart2_DMA_Receiver.Data, 1024); 
+	
+	/*-----------测试调试任务-----------------*/
   TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Count_Mode);
+	/*-----------持续传输任务-----------------*/
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
+	/*-----------协议解析任务-----------------*/
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
+	/*-----------协议执行任务-----------------*/
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode);  
   /* USER CODE END 2 */
 
