@@ -299,6 +299,7 @@ int8_t Protocol_Serialization(Protocol_Info_T* pi, uint8_t* data, uint8_t len){
 ****************************************************/
 void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){ 
 	Protocol_Info_T pi = {0};
+	int8_t cnt = 0;
 	pi.ParameterList = MALLOC(Len);
 	MALLOC_CHECK(pi.ParameterList, "Protocol_Send"); 
 	pi.ProtocolDesc = Get_Protocol_Description(ModuleAction, SEND);
@@ -319,10 +320,11 @@ void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){
 	#elif PROTOCOL_VERSION == 2
 	pi.AllLen = pi.Plen + 5;
 	#endif
-	uint8_t* data = MALLOC(pi.AllLen);
+	uint8_t* data = MALLOC(pi.AllLen * 2);
 	MALLOC_CHECK(data, "Protocol_Send"); 
-	Protocol_Serialization(&pi, data, pi.AllLen);	
-	pi.ProtocolDesc->Send(data, pi.AllLen);
+	if((cnt = Protocol_Serialization(&pi, data, pi.AllLen * 2)) == -1)
+		Log.error("Protocol_Send序列化失败\r\n");
+	pi.ProtocolDesc->Send(data, cnt);
 	FREE(pi.ParameterList);
 	FREE(data);
 }
@@ -334,10 +336,12 @@ void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){
 	作者:		liyao 2016年9月18日11:51:35
 ****************************************************/
 void Protocol_Send_Transpond(Protocol_Info_T* pi){  
-	uint8_t* data = MALLOC(pi->AllLen);
+	uint8_t* data = MALLOC(pi->AllLen * 2);
+	int8_t cnt = 0;
 	MALLOC_CHECK(data, "Protocol_Send_Transpond"); 
-	Protocol_Serialization(pi, data, pi->AllLen);
-	pi->ProtocolDesc->Send(data, pi->AllLen);
+	if((cnt = Protocol_Serialization(pi, data, pi->AllLen * 2)) == -1)
+		Log.error("Protocol_Send序列化失败\r\n"); 
+	pi->ProtocolDesc->Send(data, cnt);
 	FREE(data);
 }
 
