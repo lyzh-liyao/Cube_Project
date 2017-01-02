@@ -47,7 +47,7 @@ extern uint8_t Rudder_Pause;
 char UltrasonicRes[16];
 void Ultrasonic_Run(void){
 	if(Ultrasonic->Distance_State == 2){//超声波数据就绪  90° = 13  140°= 18   30° = 18
-		if(Ultrasonic->Distance < (130 + abs(90-RudderX->Angle)))		//障碍物在10cm时
+		if(Ultrasonic->Distance < (130 + abs(90-RudderX->Angle_Cur)))		//障碍物在10cm时
 			Ultrasonic->Check_Res = BARRIER;								
 		else if(Ultrasonic->Distance < 300)
 			Ultrasonic->Check_Res = WARNING;	

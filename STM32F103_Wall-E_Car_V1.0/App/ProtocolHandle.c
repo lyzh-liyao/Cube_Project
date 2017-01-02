@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "ComBuff.h" 
 #include "MotorControl.h"
+#include "RudderControl.h"
 //#include <iar_dlmalloc.h>
 
 void Heap_Use(Protocol_Info_T* pi){
@@ -16,7 +17,7 @@ void HeartBeat_P_Handle(Protocol_Info_T* pi){
 }
 
 void Run_Protocol_Handle(Protocol_Info_T* pi){
-	Run_Protocol_T* rp = pi->ParameterList;
+	Run_P_T* rp = pi->ParameterList;
 	uint16_t l_speed, r_speed;
 	MOTOR_DIR l_dir, r_dir;
 	printf("\r\n执行运动指令\r\n");
@@ -41,5 +42,11 @@ void Run_Protocol_Handle(Protocol_Info_T* pi){
 	printf("左轮方向：%d, 速度：%d\t右轮方向：%d, 速度：%d\r\n", rp->para1, rp->para2 << 8 | rp->para3, rp->para4, rp->para5 << 8 | rp->para6 );
 }
 
+void Rudder_Protocol_Handle(Protocol_Info_T* pi){
+	Rudder_P_T* rp = pi->ParameterList;
+	RudderX->Angle_CMD = rp->X_Angle;
+	RudderY->Angle_CMD = rp->Y_Angle;
+	printf("舵机控制：%d, %d\r\n", (uint8_t)rp->X_Angle, (uint8_t)rp->Y_Angle);
+}
 
  

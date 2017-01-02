@@ -8,8 +8,8 @@
 #define RUDDER_MAX_ANGLE 180	//°
 /*#define RUDDER_MAX_WIDTH 2500 //us
 #define RUDDER_MIN_WIDTH 500  //us*/
-#define RUDDER_MAX_WIDTH 1350 //us
-#define RUDDER_MIN_WIDTH 350  //us
+#define RUDDER_MAX_WIDTH 2500 //us
+#define RUDDER_MIN_WIDTH 500  //us
 #define RUDDER_TIM_Prescaler 			SystemCoreClock/1000000
 
 typedef struct _RUDDER_T RUDDER_T ;
@@ -18,9 +18,10 @@ struct _RUDDER_T{
 	uint8_t TIM_Channel;
 	uint16_t TIM_Period_Pulse;
 	float Angle_Code;
-	uint16_t Angle;
+	float Angle_Cur;
+	float Angle_CMD;
 	Protocol_Info_T 	Exec_Protocol;//正在执行的协议 
-	void (*setRudderAngle)(RUDDER_T* rudder,uint16_t angle);
+	void (*setRudderAngle)(RUDDER_T* rudder,float angle);
 };
 		
 extern RUDDER_T* RudderX;

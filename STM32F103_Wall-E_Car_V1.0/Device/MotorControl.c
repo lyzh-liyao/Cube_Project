@@ -299,13 +299,10 @@ void Motor_PID(void){
 	
 	//printf("32\t%d\t%d\r\n",motor_L->Encoder_Diff,motor_R->Encoder_Diff);
 	//printf("%d",motor->Encoder_Diff);//, motor->ENC_TIMx->Instance->CNT); //motor->ENC_TIMx->Instance->CNT);//
-	if(motor_L->DirCMD == motor_R->DirCMD && motor_L->SpeedCMD == motor_R->SpeedCMD){
-		Motor_Location_Calculate(0);
-	}
-//	else{
-//		motor_L->PID_Location.PID_Reset(&motor_L->PID_Location);
-//		motor_R->PID_Location.PID_Reset(&motor_R->PID_Location);
+//	if(motor_L->DirCMD == motor_R->DirCMD && motor_L->SpeedCMD == motor_R->SpeedCMD){
+//		Motor_Location_Calculate(0);
 //	}
+
 	
 	_Motor_PID_Control(&Motor_L);
 	_Motor_PID_Control(&Motor_R);  
@@ -393,5 +390,14 @@ static void _Motor_PID_Control(Motor_T* motor){
 	
 }
 
-
+void ReportState(void){
+	STATE_P_T state = {0};
+	state.para1 = Motor_L.Dir;
+	state.para2 = 0;
+	state.para3 = abs(Motor_L.Encoder_Diff) * 2;
+	state.para4 = Motor_R.Dir;
+	state.para5 = 0;
+	state.para6 = abs(Motor_R.Encoder_Diff) * 2;
+	Protocol_Send(STATE_PROTOCOL, &state, sizeof(STATE_P_T));
+}
 

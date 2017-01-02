@@ -8,9 +8,8 @@
  
  
 void Send(uint8_t* data, uint8_t len){
-	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, len);
+	Uart3_DMA_Sender.Write(&Uart3_DMA_Sender, data, len);
 }
- 
 
 void Protocol_Init(){ 
 	Protocol_Desc_T pdt;
@@ -31,6 +30,14 @@ void Protocol_Init(){
   
   
 	memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = sizeof(STATE_P_T);
+	pdt.ModuleAction = STATE_PROTOCOL; 
+	pdt.Send = Send;
+	pdt.Check = NULL;
+	pdt.Handle = NULL;
+	Protocol_Register(&pdt,SEND);
+	
+	memset(&pdt, 0, sizeof(Protocol_Desc_T));
 	pdt.ProtocolSize = sizeof(HeartBeat_P_T);
 	pdt.ModuleAction = HEART_BEAT; 
 	pdt.Send = Send;
@@ -39,9 +46,15 @@ void Protocol_Init(){
 	Protocol_Register(&pdt,RECEIVE);
 	
 	memset(&pdt, 0, sizeof(Protocol_Desc_T));
-	pdt.ProtocolSize = sizeof(Run_Protocol_T);
+	pdt.ProtocolSize = sizeof(Run_P_T);
 	pdt.ModuleAction = RUN_PROTOCOL;   
 	pdt.Handle = Run_Protocol_Handle;
+	Protocol_Register(&pdt,RECEIVE);
+	
+	memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = sizeof(Rudder_P_T);
+	pdt.ModuleAction = RUDDER_PROTOCOL;   
+	pdt.Handle = Rudder_Protocol_Handle;
 	Protocol_Register(&pdt,RECEIVE);
   
 }

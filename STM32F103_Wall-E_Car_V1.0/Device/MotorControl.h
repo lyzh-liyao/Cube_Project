@@ -66,6 +66,7 @@ extern void Motor_Init(void);
 extern void Motor_GPIO_Configuration(void);
 extern void Motor_TIM_Configuration(void);
 extern void Motor_PID(void);
+extern void ReportState(void);
 
 #endif
 

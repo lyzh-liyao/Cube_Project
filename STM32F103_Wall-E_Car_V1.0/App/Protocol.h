@@ -31,8 +31,7 @@ typedef struct{
 	uint8_t para11; 
 	uint8_t para12;
 	uint8_t para13;
-}STATE_PROTOCOL_T;
-
+}STATE_P_T;
 /****************************************************
 	结构体名:	ASK_PROTOCOL_T
 	功能: 应答协议实体
@@ -58,7 +57,7 @@ typedef struct{
 }HeartBeat_P_T;
  
 /****************************************************
-	结构体名:	RUN_PROTOCOL_T
+	结构体名:	Run_P_T
 	功能:	双轮控制命令协议实体
 	作者：liyao 2015年9月8日14:10:51
 	例:		fd 01 01 00 32 01 00 32 ff 00 f8
@@ -70,8 +69,19 @@ typedef struct{
 	int8_t para4;//右轮方向
 	uint8_t para5;//右轮速度高8位
 	uint8_t para6;//右轮速度低8位
-	uint8_t serial;
-}Run_Protocol_T;
+	//uint8_t serial;
+}Run_P_T;
+
+/****************************************************
+	结构体名:	RUDDER_P_T
+	功能:	舵机控制命令协议实体
+	作者：liyao 2017年1月2日
+	例:		fd 01 01 00 32 01 00 32 ff 00 f8
+****************************************************/
+typedef struct{
+	uint8_t X_Angle;//X轴舵机
+	uint8_t Y_Angle;//Y轴舵机
+}Rudder_P_T;
 
 //----------------------联合体--------------------------------
 #define TO_MODULE_ACTION(SrcModule,TargetModule,Action) (SrcModule<<4|TargetModule)<<8|Action
@@ -91,7 +101,11 @@ typedef enum {
 	HEART_BEAT	 = TO_MODULE_ACTION(PAD_MODULE, MOTOR_MODULE, 0x80),
   HEAP_USE	 = TO_MODULE_ACTION(PAD_MODULE, MOTOR_MODULE, 0xAA), 
 	
+	STATE_PROTOCOL = TO_MODULE_ACTION(MOTOR_MODULE, PAD_MODULE, 0x01),
+	
+	
 	RUN_PROTOCOL = TO_MODULE_ACTION(PAD_MODULE, MOTOR_MODULE, 0x01),
+	RUDDER_PROTOCOL = TO_MODULE_ACTION(PAD_MODULE, MOTOR_MODULE, 0x02),
   
 }MODULE_ACTION;
  

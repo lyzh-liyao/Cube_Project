@@ -4,7 +4,7 @@
   * Description        : Main program body
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -46,6 +46,7 @@
 #include "oled.h"
 #include "RudderControl.h"  
 #include "UltrasonicControl.h"
+#include "MPU6050.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -96,7 +97,7 @@ void PaddingProtocol(void){
 	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
 		if((cnt = Uart2_DMA_Receiver.Read(&Uart2_DMA_Receiver,data,BUFFSIZE))>0){
 			for(uint8_t i = 0; i < cnt; i++)
-				Ultrasonic_Recv(Ultrasonic, data[i]); 
+				Ultrasonic_Recv(Ultrasonic, data[i]);
 		}
 	#endif
 	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
@@ -104,8 +105,8 @@ void PaddingProtocol(void){
 			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);
 	#endif
 	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
-		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
+		while(Uart4_DMA_Receiver.ReadByte(&Uart4_DMA_Receiver,data)==0)
+			MPU6050->Put_Byte(MPU6050,data[0]);
 	#endif
 }
 
@@ -126,7 +127,19 @@ void LED_TEST(void){
 	
 }
 
+void Fetch_MPU6050(void){ 
+	MPU6050->Get_MPU6050(MPU6050);
+	//printf("X:%d,Y:%d,Z:%d\r\n",MPU6050->X,MPU6050->Y,MPU6050->Z);
+	OLED_Buff = MALLOC(100);
+	memset(OLED_Buff,0, 100);
+	sprintf(OLED_Buff, "X:%d,Y:%d,Z:%d\r\n",(uint8_t)MPU6050->X,(uint8_t)MPU6050->Y,(uint8_t)MPU6050->Z);
+	OLED_Clear(7,8);
+	OLED_ShowString(0,6,(uint8_t*)OLED_Buff);
+	//printf("%s",OLED_Buff);  
+	FREE(OLED_Buff);
+}
 /* USER CODE END 0 */
+
 
 int main(void)
 {
@@ -152,6 +165,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM8_Init();
   MX_USART2_UART_Init();
+  MX_UART4_Init();
 
   /* USER CODE BEGIN 2 */
 //	__HAL_AFIO_REMAP_SWJ_NONJTRST();
@@ -164,17 +178,22 @@ int main(void)
 	Motor_Init();				//驱动电机初始化  
 	OLED_Init();				//OLED液晶初始化
 	Rudder_Init(); 			//舵机初始化
-	
+	MPU6050_Init();			//MPU6050初始化
   TaskTime_Add(TaskID++, TimeCycle(1, 0), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 	
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Count_Mode); 
+	//------------上报运动状态----------------------
+	TaskTime_Add(TaskID++, TimeCycle(0,400), ReportState, Real_Mode); 
 	//------------电机PID控制----------------------
 	TaskTime_Add(TaskID++, TimeCycle(0,75), Motor_PID, Real_Mode);
 	//------------舵机----------------------
 	TaskTime_Add(TaskID++, TimeCycle(0, 10), Rudder_Run, Real_Mode);	
 	//------------超声波----------------------
 	TaskTime_Add(TaskID++, TimeCycle(0, 50), Ultrasonic_Run, Real_Mode);
+	//------------处理MPU6050数据----------------------
+	TaskTime_Add(TaskID++, TimeCycle(0, 10), Fetch_MPU6050, Real_Mode);  
+	 
 //	motor_L->Motor_Run(motor_L, MOTOR_UP, 20);
 //	motor_R->Motor_Run(motor_R, MOTOR_UP, 20);
   /* USER CODE END 2 */

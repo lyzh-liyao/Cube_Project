@@ -8,5 +8,6 @@ extern void Heap_Use(Protocol_Info_T* pi);
 extern void HeartBeat_P_Handle(Protocol_Info_T* pi); 
 
 extern void Run_Protocol_Handle(Protocol_Info_T* pi);
+extern void Rudder_Protocol_Handle(Protocol_Info_T* pi);
 #endif
 
