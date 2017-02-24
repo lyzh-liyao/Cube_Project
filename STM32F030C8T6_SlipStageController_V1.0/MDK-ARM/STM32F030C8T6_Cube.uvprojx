@@ -17,25 +17,7 @@
           <Vendor>STMicroelectronics</Vendor>
           <PackID>Keil.STM32F0xx_DFP.1.4.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
           <Cpu>IRAM(0x20000000-0x20001FFF) IROM(0x8000000-0x800FFFF) CLOCK(8000000) CPUTYPE("Cortex-M0")</Cpu>
-          <FlashUtilSpec />
-          <StartupFile />
-          <FlashDriverDll />
-          <DeviceId />
-          <RegisterFile />
-          <MemoryEnv />
-          <Cmp />
-          <Asm />
-          <Linker />
-          <OHString />
-          <InfinionOptionDll />
-          <SLE66CMisc />
-          <SLE66AMisc />
-          <SLE66LinkerMisc />
-          <SFDFile>$$Device:STM32F030C8$SVD\STM32F030.svd</SFDFile>
-=======
-          <Cpu>IRAM(0x20000000-0x2000BFFF) IROM(0x8000000-0x803FFFF) CLOCK(8000000) CPUTYPE("Cortex-M3")</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
           <FlashDriverDll></FlashDriverDll>
@@ -50,8 +32,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32F103RC$SVD\STM32F103xx.svd</SFDFile>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
+          <SFDFile>$$Device:STM32F030C8$SVD\STM32F030.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -73,11 +54,7 @@
           <CreateHexFile>0</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-          <ListingPath>./STM32F030C8T6_Cube/</ListingPath>
-=======
           <ListingPath></ListingPath>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
           <CreateBatchFile>0</CreateBatchFile>
@@ -136,15 +113,9 @@
           <SimDlgDll>DARMCM1.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM0</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-          <TargetDllArguments />
+          <TargetDllArguments></TargetDllArguments>
           <TargetDlgDll>TARMCM1.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM0</TargetDlgDllArguments>
-=======
-          <TargetDllArguments></TargetDllArguments>
-          <TargetDlgDll>TCM.DLL</TargetDlgDll>
-          <TargetDlgDllArguments>-pCM3</TargetDlgDllArguments>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
         </DllOption>
         <DebugOption>
           <OPTHX>
@@ -203,11 +174,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4107</DriverSelection>
+            <DriverSelection>4103</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>STLink\ST-LINKIII-KEIL_SWO.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -243,13 +214,8 @@
             <AdsLsxf>1</AdsLsxf>
             <RvctClst>0</RvctClst>
             <GenPPlst>0</GenPPlst>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
             <AdsCpuType>"Cortex-M0"</AdsCpuType>
-            <RvctDeviceName />
-=======
-            <AdsCpuType>"Cortex-M3"</AdsCpuType>
             <RvctDeviceName></RvctDeviceName>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
             <mOS>0</mOS>
             <uocRom>0</uocRom>
             <uocRam>0</uocRam>
@@ -348,7 +314,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x40000</Size>
+                <Size>0x10000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -405,15 +371,9 @@
             <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--C99</MiscControls>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
               <Define>USE_HAL_DRIVER,STM32F030x8</Define>
-              <Undefine />
-              <IncludePath>../Inc;                  ../Drivers/STM32F0xx_HAL_Driver/Inc;                  ../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy;                  ../Drivers/CMSIS/Device/ST/STM32F0xx/Include;                  ../Drivers/CMSIS/Include;                  ..\App;                  ..\..\STM32_Liyao_Frame\Frame</IncludePath>
-=======
-              <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;               ../Drivers/STM32F1xx_HAL_Driver/Inc;               ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;               ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;               ../Drivers/CMSIS/Include;               ..\App;               ..\..\STM32_Liyao_Frame\Frame;               ..\Device;               ..\Device\OLED</IncludePath>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
+              <IncludePath>../Inc;../Drivers/STM32F0xx_HAL_Driver/Inc;../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F0xx/Include;../Drivers/CMSIS/Include;..\App;..\Src;..\..\STM32_Liyao_Frame\Frame</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -455,7 +415,6 @@
       <Groups>
         <Group>
           <GroupName>Application/User</GroupName>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
           <Files>
             <File>
               <FileName>main.c</FileName>
@@ -468,6 +427,11 @@
               <FilePath>../Src/stm32f0xx_it.c</FilePath>
             </File>
             <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/tim.c</FilePath>
+            </File>
+            <File>
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/usart.c</FilePath>
@@ -476,11 +440,6 @@
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/dma.c</FilePath>
             </File>
             <File>
               <FileName>stm32f0xx_hal_msp.c</FileName>
@@ -488,69 +447,9 @@
               <FilePath>../Src/stm32f0xx_hal_msp.c</FilePath>
             </File>
             <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/tim.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>App</GroupName>
-=======
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
-          <Files>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/main.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/usart.c</FilePath>
-            </File>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-            <File>
-              <FileName>StepMotor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\App\StepMotor.c</FilePath>
-            </File>
-            <File>
-              <FileName>StepMotor.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\App\StepMotor.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Frame</GroupName>
-          <Files>
-=======
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
-            <File>
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_msp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/stm32f1xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/stm32f1xx_it.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/gpio.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -582,116 +481,19 @@
               <FileType>5</FileType>
               <FilePath>..\App\ProtocolHandle.h</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-          <GroupName>Drivers/CMSIS</GroupName>
-=======
-          <GroupName>Device</GroupName>
-          <Files>
             <File>
-              <FileName>MotorControl.c</FileName>
+              <FileName>StepMotor.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Device\MotorControl.c</FilePath>
+              <FilePath>..\App\StepMotor.c</FilePath>
             </File>
             <File>
-              <FileName>MotorControl.h</FileName>
+              <FileName>StepMotor.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Device\MotorControl.h</FilePath>
-            </File>
-            <File>
-              <FileName>PID.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\PID.c</FilePath>
-            </File>
-            <File>
-              <FileName>PID.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\PID.h</FilePath>
-            </File>
-            <File>
-              <FileName>Strategy.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\Strategy.c</FilePath>
-            </File>
-            <File>
-              <FileName>Strategy.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\Strategy.h</FilePath>
-            </File>
-            <File>
-              <FileName>RudderControl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\RudderControl.c</FilePath>
-            </File>
-            <File>
-              <FileName>RudderControl.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\RudderControl.h</FilePath>
-            </File>
-            <File>
-              <FileName>UltrasonicControl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\UltrasonicControl.c</FilePath>
-            </File>
-            <File>
-              <FileName>UltrasonicControl.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\UltrasonicControl.h</FilePath>
-            </File>
-            <File>
-              <FileName>MPU6050.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\MPU6050.c</FilePath>
-            </File>
-            <File>
-              <FileName>MPU6050.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\MPU6050.h</FilePath>
-            </File>
-            <File>
-              <FileName>BMP180.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\BMP180.c</FilePath>
-            </File>
-            <File>
-              <FileName>BMP180.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\BMP180.h</FilePath>
+              <FilePath>..\App\StepMotor.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Device/OLED</GroupName>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
-          <Files>
-            <File>
-              <FileName>system_stm32f0xx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-          <GroupName>Drivers/STM32F0xx_HAL_Driver</GroupName>
-          <Files>
-            <File>
-              <FileName>stm32f0xx_hal_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f0xx_hal_tim_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f0xx_hal_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c</FilePath>
-=======
           <GroupName>Frame</GroupName>
           <Files>
             <File>
@@ -753,7 +555,34 @@
               <FileName>TaskTimeManager.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\STM32_Liyao_Frame\Frame\TaskTimeManager.h</FilePath>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
+        </Group>
+        <Group>
+          <GroupName>Drivers/CMSIS</GroupName>
+          <Files>
+            <File>
+              <FileName>system_stm32f0xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/STM32F0xx_HAL_Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32f0xx_hal_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_tim_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f0xx_hal_flash.c</FileName>
@@ -761,14 +590,39 @@
               <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f0xx_hal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f0xx_hal_i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_rcc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_uart_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_cortex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_pwr_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f0xx_hal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.c</FilePath>
             </File>
             <File>
               <FileName>stm32f0xx_hal_gpio.c</FileName>
@@ -786,11 +640,6 @@
               <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f0xx_hal_rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f0xx_hal_flash_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash_ex.c</FilePath>
@@ -805,21 +654,6 @@
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr.c</FilePath>
             </File>
-            <File>
-              <FileName>stm32f0xx_hal_uart_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f0xx_hal_cortex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f0xx_hal_pwr_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -832,9 +666,6 @@
             </File>
           </Files>
         </Group>
-        <Group>
-          <GroupName>::CMSIS</GroupName>
-        </Group>
       </Groups>
     </Target>
   </Targets>
@@ -845,11 +676,7 @@
       <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.1.0" condition="CMSIS Core">
         <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="4.3.0"/>
         <targetInfos>
-<<<<<<< HEAD:STM32F030C8T6_SlipStageController_V1.0/MDK-ARM/STM32F030C8T6_Cube.uvprojx
-          <targetInfo name="STM32F030C8T6_Cube" />
-=======
-          <targetInfo name="STM32F103"/>
->>>>>>> 11a424b501bd0a468b51c3e78b037fff414bd94e:STM32F103_Wall-E_Car_V1.0/MDK-ARM/STM32F103.uvprojx
+          <targetInfo name="STM32F030C8T6_Cube"/>
         </targetInfos>
       </component>
     </components>
