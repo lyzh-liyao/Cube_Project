@@ -4,6 +4,7 @@
 TimeTaskInfo_T OSInfo;	//系统运行状态
 TaskTime_T* TaskTime_Head = &OSInfo.TThead;//链表头  
 uint8_t TaskID = 0;
+uint32_t jiffies = 0;//自系统启动以来产生的节拍的总数
 //临时变量
 static TaskTime_T *tmpTaskTime,*prevTaskTime,*nextTaskTime;
 
@@ -231,6 +232,7 @@ int8_t TaskTime_RecoverTask(uint8_t id){
   */
 void HAL_SYSTICK_Callback(void)
 {
+	jiffies++;
 	TaskTime_T *tmpTaskTimeH = TaskTime_Head; 
 //	#ifdef LOAD_MONITOR_ON
 //		COUNTER_ON; 

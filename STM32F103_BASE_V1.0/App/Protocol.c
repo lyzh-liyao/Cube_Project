@@ -16,6 +16,12 @@ void Protocol_Init(){
 	Protocol_Desc_T pdt;
 
 	memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = 2;
+	pdt.ModuleAction = ANSWER;
+  pdt.Send = Send;
+	Protocol_Register(&pdt,SEND);
+	
+	memset(&pdt, 0, sizeof(Protocol_Desc_T));
 	pdt.ProtocolSize = sizeof(State_P_T);
 	pdt.ModuleAction = REPORT_STATE; 
 	pdt.Send = Send;

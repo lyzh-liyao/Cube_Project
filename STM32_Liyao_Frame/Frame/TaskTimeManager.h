@@ -54,7 +54,7 @@ typedef struct
 	TaskTime_T TThead;	//ÁÐ±íÍ·
 }TimeTaskInfo_T;
 
-
+extern uint32_t jiffies;
 extern uint8_t TaskID;
 extern void TaskTime_Run(void);
 extern void BaseClock_Init(void);
