@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include "ComBuff.h" 
 #include "MotorControl.h"
-#include "RudderControl.h"
+#include "RudderControl.h" 
 //#include <iar_dlmalloc.h>
+
 
 void Heap_Use(Protocol_Info_T* pi){
   //__iar_dlmalloc_stats();
@@ -22,6 +23,7 @@ void Run_Protocol_Handle(Protocol_Info_T* pi){
 	MOTOR_DIR l_dir, r_dir;
 	printf("\r\n执行运动指令\r\n");
 	motor_L->Exec_Protocol = motor_R->Exec_Protocol = *pi;
+	Heart_Flag = 1;//心跳置位
 	//速度获取
 	l_speed = rp->para2 << 8 | rp->para3;
 	r_speed = rp->para5 << 8 | rp->para6;

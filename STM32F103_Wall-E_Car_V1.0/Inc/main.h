@@ -36,7 +36,8 @@
   /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-
+#include <stdint.h>
+extern uint8_t Heart_Flag;
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

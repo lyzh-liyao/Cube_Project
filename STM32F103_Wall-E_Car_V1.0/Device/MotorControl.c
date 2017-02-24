@@ -375,7 +375,7 @@ static void _Motor_PID_Control(Motor_T* motor){
 		Motor_Turn_Dir(motor);
 		_Motor_Set_Pwm(motor, 0); 
 		motor->DirCMD = MOTOR_STOP; 
-		printf("反转转向\r\n"); 
+		printf("反转刹车\r\n"); 
 	}else if(motor->DirCMD == MOTOR_STOP){
 		_Motor_Set_Pwm(motor, 0); 
 		_Motor_PID_Clear(motor);
