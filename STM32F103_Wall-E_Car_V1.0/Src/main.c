@@ -34,6 +34,7 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 #include "dma.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -125,9 +126,6 @@ void LED_TEST(void){
   printf("%s",OLED_Buff);  
 	FREE(OLED_Buff);
 	//RudderX->setRudderAngle(RudderX, seq%100+40);
-	uint8_t chipid = 0;
-	uint8_t chipid_reg = 0xD0;
-	uint8_t res = 0; 
 //	if(HAL_OK == (res = HAL_I2C_Mem_Read(&hi2c1, 0xee, chipid_reg, I2C_MEMADD_SIZE_8BIT, &chipid, 1, 1000))){
 //			printf("chipid:%x\r\n", chipid);
 //	}else{
@@ -140,19 +138,11 @@ void LED_TEST(void){
 //			printf("chipid:%x\r\n", chipid);
 //		}
 //	}
-//		short ut = bmp180_get_ut(); 
-//		DelayMS(50);
-//		short up = bmp180_get_up(); 
-//		short gut = bmp180_get_temperature(ut);
-//		short gup = bmp180_get_pressure(up);
-//		printf("%d, %d, %d, %d \r\n", ut, up, gut, gup);
-
-
-				 uint8_t BMP180_ID = BMP180_ReadOneByte(0xd0);      //读取ID地址
-         printf("BMP180_ID:0x%x \r\n",BMP180_ID);
-         long UT = Get_BMP180UT();           
-         long UP = Get_BMP180UP();                                
-         Convert_UncompensatedToTrue(UT,UP); 
+//				 uint8_t BMP180_ID = BMP180_ReadOneByte(0xd0);      //读取ID地址
+         //printf("BMP180_ID:0x%x \r\n",BMP180_ID);
+//         long UT = Get_BMP180UT();           
+//         long UP = Get_BMP180UP();                                
+         //Convert_UncompensatedToTrue(UT,UP); 
 				 
 	
 }
@@ -168,6 +158,7 @@ void Fetch_MPU6050(void){
 	//printf("%s",OLED_Buff);  
 	FREE(OLED_Buff);
 }
+
 
 uint8_t Heart_Flag = 2;
 void Heart_Beat(void){
@@ -188,7 +179,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	struct bmp180_t bmp180 = {0};
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -210,21 +200,20 @@ int main(void)
   MX_TIM8_Init();
   MX_USART2_UART_Init();
   MX_UART4_Init();
+  MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
 //	__HAL_AFIO_REMAP_SWJ_NONJTRST();
-  TaskTime_Init();
+  TaskTime_Init();  
   ProtocolFrame_Init();
   Log_Init();
   ComBuff_Init(); 
-	
-	
+	 
 	Motor_Init();				//驱动电机初始化  
 	OLED_Init();				//OLED液晶初始化
 	Rudder_Init(); 			//舵机初始化
-	MPU6050_Init();			//MPU6050初始化
-//	bmp180_init(&bmp180);
-Read_CalibrationData();
+	MPU6050_Init();			//MPU6050初始化 
+	 
   TaskTime_Add(TaskID++, TimeCycle(1, 0), LED_TEST, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
   TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Count_Mode);
@@ -241,6 +230,9 @@ Read_CalibrationData();
 	TaskTime_Add(TaskID++, TimeCycle(0, 10), Fetch_MPU6050, Real_Mode);  
 	//------------心跳检查----------------------
 	TaskTime_Add(TaskID++, TimeCycle(0, 500), Heart_Beat, Real_Mode);  
+	//------------处理BMP180数据----------------------
+//	TaskTime_Add(TaskID++, TimeCycle(0, 300), BMP180_Build, Real_Mode);  
+	
 	 
 //	motor_L->Motor_Run(motor_L, MOTOR_UP, 20);
 //	motor_R->Motor_Run(motor_R, MOTOR_UP, 20);

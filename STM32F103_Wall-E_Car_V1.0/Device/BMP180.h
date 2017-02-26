@@ -98,7 +98,7 @@
 
 #ifndef __BMP180_H__
 #define __BMP180_H__
-
+#include <stdint.h>
 #define bmp180_calc_temperature(ut)\
 		bmp180_get_temperature(ut)
 
@@ -212,6 +212,7 @@ struct bmp180_calibration_param_t{
    short mc;
    short md;
 };
+
 /* BMP180 image registers data structure */
 struct bmp180_t {
    struct bmp180_calibration_param_t cal_param;
@@ -224,6 +225,13 @@ struct bmp180_t {
    int number_of_samples;
    short oversampling_setting;
    short sw_oss;
+	
+	 uint8_t state;
+	 long UT;//未校准温度系数
+	 long UP;//未校准气压系数
+	 long pressure;//气压
+	 float temperature;//温度
+	 float elevation;//海拔
    BMP180_BUS_WR_RETURN_TYPE(*bus_write)(BMP180_BUS_WR_PARAM_TYPES);
    BMP180_BUS_RD_RETURN_TYPE(*bus_read)(BMP180_BUS_RD_PARAM_TYPES);
    BMP180_MDELAY_RETURN_TYPE(*delay_msec)(BMP180_MDELAY_DATA_TYPE);
@@ -280,12 +288,6 @@ char bmp180_set_reg(unsigned char , unsigned char*, unsigned char);
 
 /* API internal helper functions */
 int bmp180_get_cal_param(void);
-
-
-
-void Read_CalibrationData(void);
-uint8_t BMP180_ReadOneByte(uint8_t ReadAddr);
-long Get_BMP180UT(void);
-long Get_BMP180UP(void);
-void Convert_UncompensatedToTrue(long UT,long UP);
+extern void Convert_UncompensatedToTrue(long UT,long UP);
+extern void BMP180_Build(void);
 #endif   /* __BMP180_H__ */
