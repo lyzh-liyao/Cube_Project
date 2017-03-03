@@ -40,3 +40,15 @@ void Cmd_A_P_Handle(Protocol_Info_T* pi){
 	printf("运动角度：%f,速度：%d\r\n", offset, Cmd_P->para6);
 	stepMotor.Run_Angle(Cmd_P->para1, offset, Cmd_P->para6);
 }
+
+void Cmd_C_P_Handle(Protocol_Info_T* pi){  
+	printf("收到运动到中间指令:\r\n");
+	int16_t offset = MAX_SIZE/2 - (stepMotor.Absolute_Step/stepMotor.SingleMillimeter_Setp);
+	int16_t dir = DIR_RIGHT;
+	if(offset < 0){
+		dir = DIR_LEFT;
+		offset = -offset;
+	}
+	printf("方向:%d, 运动偏移量：%d,速度：%d\r\n",dir, offset, 100);
+	stepMotor.Run_Offset(dir, offset, 100);
+}

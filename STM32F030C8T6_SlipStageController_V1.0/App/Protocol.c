@@ -39,5 +39,12 @@ void Protocol_Init(){
 	pdt.Handle = Cmd_A_P_Handle;
 	//pdt.Ack = Ack_Send;
 	Protocol_Register(&pdt,RECEIVE);
+	
+	memset(&pdt, 0, sizeof(Protocol_Desc_T));
+	pdt.ProtocolSize = 1;
+	pdt.ModuleAction = CMD_C_PROTOCOL; 
+	pdt.Handle = Cmd_C_P_Handle;
+	//pdt.Ack = Ack_Send;
+	Protocol_Register(&pdt,RECEIVE);
 }
 

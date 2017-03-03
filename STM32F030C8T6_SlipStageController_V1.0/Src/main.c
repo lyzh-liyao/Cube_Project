@@ -75,6 +75,13 @@ void LED_TEST(void){
   //printf("LED_TEST:%d,%d\r\n", seq++,stepMotor.Location_Cur_Step);  
 }
 
+int8_t tmpID = 0;
+void Center_Run(void){
+	if(stepMotor.Motor_State == FINISH_M){
+		stepMotor.Run_Offset(DIR_RIGHT, MAX_SIZE/2,100);
+		TaskTime_Remove(tmpID);
+	}
+}
 //void step_next(void){
 //	if(flag > 0) 
 //		flag--;
@@ -125,6 +132,8 @@ int main(void)
   ComBuff_Init(); 
   
 	StepMotor_Init();
+//	printf("OK\r\n"); 
+//	while(1);
   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
   
 	/*-----------测试调试任务-----------------*/
@@ -137,7 +146,8 @@ int main(void)
 	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Real_Mode); 
 	/*-----------扫描限位开关-----------------*/
 	TaskTime_Add(TaskID++, TimeCycle(0,30), Scan_Limit, Real_Mode);
-	
+	/*-----------初始化居中运动*/
+	tmpID = TaskTime_Add(TaskID++, TimeCycle(1,0), Center_Run, Real_Mode);
 	//TaskTime_Add(TaskID++, TimeCycle(0,1), step_next, Real_Mode); 
 	
 	//HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_1);

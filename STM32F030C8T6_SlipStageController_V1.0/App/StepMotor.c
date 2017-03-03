@@ -87,7 +87,7 @@ void _Stop(void){
 	stepMotor.Location_Cur_Step = 0;
 	stepMotor.Location_Cmd_Step = 0;
 	stepMotor.Motor_State = FINISH_M;
-	printf("绝对定位：%d\r\n", stepMotor.Absolute_Step/stepMotor.SingleMillimeter_Setp);
+	printf("-----OK\r\n绝对定位：%d\r\n", stepMotor.Absolute_Step/stepMotor.SingleMillimeter_Setp);
 }
 
 void StepMotor_Init(void){

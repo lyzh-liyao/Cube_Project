@@ -32,6 +32,10 @@ typedef struct{
 	uint8_t para6; //速度 0-100 
 }CMD_A_PROTOCOL_T;  
 
+//滑台居中
+typedef struct{
+	uint8_t para1; 
+}CMD_C_PROTOCOL_T;  
 //###################################接收协议类###################################
 /****************************************************
 	结构体名:	HEARTBEAT_PROTOCOL_T
@@ -59,6 +63,7 @@ typedef enum {
   ANSWER         = TO_MODULE_ACTION(CONTROL_MODULE, SERVER_MODULE, 0xF0),
 	CMD_PROTOCOL   = TO_MODULE_ACTION(SERVER_MODULE, CONTROL_MODULE, 0x01),
 	CMD_A_PROTOCOL = TO_MODULE_ACTION(SERVER_MODULE, CONTROL_MODULE, 0x02),
+	CMD_C_PROTOCOL = TO_MODULE_ACTION(SERVER_MODULE, CONTROL_MODULE, 0x03),
 }MODULE_ACTION; 
  
 extern void Protocol_Init(void);

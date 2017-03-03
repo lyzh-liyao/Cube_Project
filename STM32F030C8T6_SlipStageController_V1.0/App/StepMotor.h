@@ -6,7 +6,7 @@
 #define STEPMOTOR_STEP 200	//步进电机360°步数
 #define MICROSTEP 32       	//细分控制器细分参数
 #define PERIMETER 39.94  			//同步轮转动一圈皮带运动距离 单位mm
-#define MAX_SIZE 1000
+#define MAX_SIZE 850
 
 #define DIR_RIGHT 1
 #define DIR_LEFT 0
