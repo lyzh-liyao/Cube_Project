@@ -373,7 +373,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;        ../Drivers/STM32F1xx_HAL_Driver/Inc;        ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;        ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;        ../Drivers/CMSIS/Include;        ..\App;        ..\..\STM32_Liyao_Frame\Frame;        ..\Device;        ..\Device\OLED</IncludePath>
+              <IncludePath>../Inc;                 ../Drivers/STM32F1xx_HAL_Driver/Inc;                 ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;                 ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;                 ../Drivers/CMSIS/Include;                 ..\App;                 ..\..\STM32_Liyao_Frame\Frame;                 ..\Device;                 ..\Device\OLED</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -414,6 +414,51 @@
       </TargetOption>
       <Groups>
         <Group>
+          <GroupName>Application/User</GroupName>
+          <Files>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/main.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_msp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/stm32f1xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/stm32f1xx_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/i2c.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>App</GroupName>
           <Files>
             <File>
@@ -440,6 +485,106 @@
               <FileName>ProtocolHandle.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\App\ProtocolHandle.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Device</GroupName>
+          <Files>
+            <File>
+              <FileName>MotorControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\MotorControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>MotorControl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\MotorControl.h</FilePath>
+            </File>
+            <File>
+              <FileName>PID.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\PID.c</FilePath>
+            </File>
+            <File>
+              <FileName>PID.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\PID.h</FilePath>
+            </File>
+            <File>
+              <FileName>Strategy.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\Strategy.c</FilePath>
+            </File>
+            <File>
+              <FileName>Strategy.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\Strategy.h</FilePath>
+            </File>
+            <File>
+              <FileName>RudderControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\RudderControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>RudderControl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\RudderControl.h</FilePath>
+            </File>
+            <File>
+              <FileName>UltrasonicControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\UltrasonicControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>UltrasonicControl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\UltrasonicControl.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\MPU6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\MPU6050.h</FilePath>
+            </File>
+            <File>
+              <FileName>BMP180.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\BMP180.c</FilePath>
+            </File>
+            <File>
+              <FileName>BMP180.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\BMP180.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Device/OLED</GroupName>
+          <Files>
+            <File>
+              <FileName>bmp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\bmp.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Device\OLED\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\oled.h</FilePath>
+            </File>
+            <File>
+              <FileName>oledfont.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Device\OLED\oledfont.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -505,126 +650,6 @@
               <FileName>TaskTimeManager.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\STM32_Liyao_Frame\Frame\TaskTimeManager.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Device</GroupName>
-          <Files>
-            <File>
-              <FileName>MotorControl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\MotorControl.c</FilePath>
-            </File>
-            <File>
-              <FileName>MotorControl.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\MotorControl.h</FilePath>
-            </File>
-            <File>
-              <FileName>PID.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\PID.c</FilePath>
-            </File>
-            <File>
-              <FileName>PID.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\PID.h</FilePath>
-            </File>
-            <File>
-              <FileName>Strategy.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\Strategy.c</FilePath>
-            </File>
-            <File>
-              <FileName>Strategy.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\Strategy.h</FilePath>
-            </File>
-            <File>
-              <FileName>RudderControl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\RudderControl.c</FilePath>
-            </File>
-            <File>
-              <FileName>RudderControl.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\RudderControl.h</FilePath>
-            </File>
-            <File>
-              <FileName>UltrasonicControl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\UltrasonicControl.c</FilePath>
-            </File>
-            <File>
-              <FileName>UltrasonicControl.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\UltrasonicControl.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Device/OLED</GroupName>
-          <Files>
-            <File>
-              <FileName>bmp.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\OLED\bmp.h</FilePath>
-            </File>
-            <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Device\OLED\oled.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\OLED\oled.h</FilePath>
-            </File>
-            <File>
-              <FileName>oledfont.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Device\OLED\oledfont.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Application/User</GroupName>
-          <Files>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/main.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_msp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/stm32f1xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/stm32f1xx_it.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/gpio.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -695,6 +720,11 @@
               <FileName>stm32f1xx_hal_pwr.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c</FilePath>
             </File>
           </Files>
         </Group>
