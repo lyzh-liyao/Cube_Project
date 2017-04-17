@@ -5,6 +5,7 @@
 #include "stm32_hal_legacy.h"
 #include "Log.h"
 #include "TaskTimeManager.h"  
+#include "combuff.h"
 
 StepMotor stepMotor;
 
@@ -87,6 +88,7 @@ void _Stop(void){
 	stepMotor.Location_Cur_Step = 0;
 	stepMotor.Location_Cmd_Step = 0;
 	stepMotor.Motor_State = FINISH_M;
+	Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, "-----OK\r\n", 9); 
 	printf("-----OK\r\n¾ø¶Ô¶¨Î»£º%d\r\n", stepMotor.Absolute_Step/stepMotor.SingleMillimeter_Setp);
 }
 

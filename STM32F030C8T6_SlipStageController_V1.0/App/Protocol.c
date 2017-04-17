@@ -13,7 +13,8 @@ void Ack_Send(Protocol_Info_T* pi){
 }
 
 void Send(uint8_t* data, uint8_t len){
-	Uart2_DMA_Sender.Write(&Uart2_DMA_Sender, data, len);
+	Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, len);
+	//Uart2_DMA_Sender.Write(&Uart2_DMA_Sender, data, len);
 }
  
 

@@ -71,7 +71,7 @@ void LED_TEST(void){
 //  Uart1_DMA_Sender.Write(&Uart1_DMA_Sender, data, 8);
 //  memset(data, 0, 8);  
   //PRINT_HEAP();
-	HAL_GPIO_WritePin(GPIO_LED_GPIO_Port, GPIO_LED_Pin,(GPIO_PinState)(seq%2));
+	HAL_GPIO_WritePin(GPIO_LED_GPIO_Port, GPIO_LED_Pin,(GPIO_PinState)(seq++%2));
   //printf("LED_TEST:%d,%d\r\n", seq++,stepMotor.Location_Cur_Step);  
 }
 
@@ -137,7 +137,7 @@ int main(void)
   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
   
 	/*-----------测试调试任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(0,500), LED_TEST, Real_Mode);
+  TaskTime_Add(TaskID++, TimeCycle(1,0), LED_TEST, Real_Mode);
 	/*-----------持续传输任务-----------------*/
   TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode); 
 	/*-----------协议解析任务-----------------*/
