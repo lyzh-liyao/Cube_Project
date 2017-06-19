@@ -88,7 +88,7 @@ void LED_TEST(void){
 //		printf("LED_TEST:%d,%d,%d\r\n", seq,adc_data[0], adc_data[1]);  
 	uint32_t tmp = cnt;
 	cnt = 0;
-	printf("LED_TEST:%d, %d\r\n", tmp, htim1.Instance->CNT);
+	//printf("LED_TEST:%d, %d\r\n", tmp, htim1.Instance->CNT);
 //	for(int i = 0; i < 100; i++){
 //		printf("%3d:%3d ", i, Ultrasonic.Wave_Adc_Buff[i]);
 //		if(i % 10 == 0)
@@ -96,9 +96,9 @@ void LED_TEST(void){
 ////		printf("%d,%d", adc_data[0], adc_data[1]);
 //	}
 	
-	getTempSensor();
+//	getTempSensor();
 	ULT_RESULT res = Ultrasonic_Send(&Ultrasonic);
-	printf("res:%d\r\n", res);
+//	printf("res:%d\r\n", res);
 
 //	ULT_DMA_START(&ULT_ADC);
 //	ULT_CAL_TIM_START();//计时器开始计时
@@ -159,11 +159,11 @@ int main(void)
   
 	Ultrasonic_Init(&Ultrasonic);
 	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-	HAL_TIM_Base_Start(&htim1);
+//	HAL_TIM_Base_Start(&htim1);
 //	HAL_ADC_Start_DMA(&hadc, (uint32_t*)Ultrasonic.Wave_Adc_Buff, WAVE_ADC_BUFF);
 	
 	/*-----------测试调试任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(1,0), LED_TEST, Real_Mode); 
+  TaskTime_Add(TaskID++, TimeCycle(1,000), LED_TEST, Real_Mode); 
 	/*-----------持续传输任务-----------------*/
 //  TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Count_Mode);
 //	/*-----------协议解析任务-----------------*/

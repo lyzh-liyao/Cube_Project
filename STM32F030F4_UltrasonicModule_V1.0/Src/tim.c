@@ -85,7 +85,7 @@ void MX_TIM16_Init(void)
 {
 
   htim16.Instance = TIM16;
-  htim16.Init.Prescaler = 48-1;
+  htim16.Init.Prescaler = 24-1;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim16.Init.Period = 25-1;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
