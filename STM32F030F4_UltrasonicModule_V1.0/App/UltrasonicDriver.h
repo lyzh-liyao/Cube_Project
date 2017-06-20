@@ -23,6 +23,8 @@ extern ULT_RESULT Ultrasonic_Send(Ultrasonic_T*);
 extern int8_t getTempSensor(void);
 
 static Ultrasonic_T* _Ultrasonic;
+
+//-----超声波配置
 #define WAVE_ADC_BUFF 400
 #define ULT_WAVE_COUNT 16
 #define ULT_ADC	hadc
@@ -30,11 +32,10 @@ static Ultrasonic_T* _Ultrasonic;
 #define ULT_CAL_TIM  htim17
 #define ULT_CYCLE_TIM htim1
 
+//-----快捷方法
 #define ULT_CAL_TIM_START() __HAL_TIM_SET_COUNTER(&ULT_CAL_TIM, 0);HAL_TIM_Base_Start(&ULT_CAL_TIM) //开始计时
 #define ULT_CAL_TIM_STOP()  HAL_TIM_Base_Stop(&ULT_CAL_TIM) 	  //停止计时
 #define ULT_CAL_TIM_CNT()   __HAL_TIM_GET_COUNTER(&ULT_CAL_TIM)	//获取计时数
-
-
 //清空DMA缓冲区
 //打开ADC定时器触发器
 //开启ADC采集
@@ -45,6 +46,14 @@ static Ultrasonic_T* _Ultrasonic;
 //停止ADC定时触发器
 #define ULT_DMA_STOP(hadc)			HAL_ADC_Stop_DMA(hadc); \
 																HAL_TIM_Base_Stop(&ULT_CYCLE_TIM)	
+																
+
+//-----算法分析
+#define DATA_CONVERT(var,step) abs(*(var + step) - 128)
+#define HIGH_THRESHOLD 120
+#define LOW_THRESHOLD  10
+
+
 //uint8_t SendUltrasonic(uint8_t WaveCount){
 //	
 //}

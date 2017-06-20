@@ -73,8 +73,6 @@ Ultrasonic_T Ultrasonic;
 #define ADC_LEN 2
 char adc_data[ADC_LEN] = {0}; 
 
-
-static uint32_t cnt = 0;
 void LED_TEST(void){
   static uint8_t seq = 0;
 //  uint8_t data[100] = "123456\r\n";
@@ -86,8 +84,6 @@ void LED_TEST(void){
 	seq++;
 //	if(seq % 100 == 0)
 //		printf("LED_TEST:%d,%d,%d\r\n", seq,adc_data[0], adc_data[1]);  
-	uint32_t tmp = cnt;
-	cnt = 0;
 	//printf("LED_TEST:%d, %d\r\n", tmp, htim1.Instance->CNT);
 //	for(int i = 0; i < 100; i++){
 //		printf("%3d:%3d ", i, Ultrasonic.Wave_Adc_Buff[i]);
