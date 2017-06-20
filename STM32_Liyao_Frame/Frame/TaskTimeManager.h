@@ -11,9 +11,10 @@ static void TaskTime_Monitor_Init(void);
 #define	SYSTICK_COUNT SystemCoreClock/8/1000 //9000
 #define SYSTICK_1US_COUNT	SYSTICK_COUNT/1000//9
 #define PRINT_HEAP() do{__iar_dlmalloc_stats();}while(0)
- 
-#ifdef	LOAD_MONITOR_ON 
-	#define LOAD_TIMX 				TIM2
+
+#ifdef	LOAD_MONITOR_ON  
+	#define LOAD_TIMX 				TIM3
+	#define ENABLE_TIMX 		  __HAL_RCC_TIM3_CLK_ENABLE()
 	#define COUNTER_ON 				LOAD_TIMX->CR1 |= TIM_CR1_CEN
 	#define COUNTER_OFF 			LOAD_TIMX->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN))
 #endif
@@ -54,7 +55,7 @@ typedef struct
 	TaskTime_T TThead;	//ÁÐ±íÍ·
 }TimeTaskInfo_T;
 
-extern uint32_t jiffies;
+extern uint64_t jiffies;
 extern uint8_t TaskID;
 extern void TaskTime_Run(void);
 extern void BaseClock_Init(void);

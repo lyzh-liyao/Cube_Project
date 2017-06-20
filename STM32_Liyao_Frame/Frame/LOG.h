@@ -17,7 +17,7 @@ extern void Log_Init(void);
 
 /*------------------------------MEM_LOG------------------------------*/
 
-#define POINT_COUNT 500 
+#define POINT_COUNT 1 
 #define MALLOC_CHECK(var, fun) do{if(var == NULL){ Log.error(__FUNCTION__);Log.error("ø’º‰∑÷≈‰ ß∞‹");}}while(0)
 #define FREE_CHECK(var,len) do{}while(0);
 	

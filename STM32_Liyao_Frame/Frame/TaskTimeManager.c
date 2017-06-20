@@ -1,10 +1,13 @@
 #include "TaskTimeManager.h"  
 #include "LOG.h"
 //static TaskTime_T TaskTimeLink[TASK_MAX_COUNT] = {0};
+#ifdef LOAD_MONITOR_ON 
+uint32_t TIMER_Tmp = 0, TIMER_Bak = 0;
+#endif
 TimeTaskInfo_T OSInfo;	//系统运行状态
 TaskTime_T* TaskTime_Head = &OSInfo.TThead;//链表头  
 uint8_t TaskID = 0;
-uint32_t jiffies = 0;//自系统启动以来产生的节拍的总数
+uint64_t jiffies = 0;//自系统启动以来产生的节拍的总数
 //临时变量
 static TaskTime_T *tmpTaskTime,*prevTaskTime,*nextTaskTime;
 
@@ -49,7 +52,7 @@ void TaskTime_Init(){
 	#ifdef LOAD_MONITOR_ON
 		TaskTime_Head->_TaskState = TASK_INIT; //任务状态
 		TaskTime_Head->Run = TaskTime_Monitor;//任务函数指针
-		TaskTime_Monitor_Init(); 
+		TaskTime_Monitor_Init();
 	#endif
 	
 	OSInfo.TaskFreeSize = TASK_MAX_COUNT;//空闲任务数
@@ -234,9 +237,9 @@ void HAL_SYSTICK_Callback(void)
 {
 	jiffies++;
 	TaskTime_T *tmpTaskTimeH = TaskTime_Head; 
-//	#ifdef LOAD_MONITOR_ON
-//		COUNTER_ON; 
-//	#endif 
+	#ifdef LOAD_MONITOR_ON
+		COUNTER_ON; 
+	#endif 
 	do{
 		switch(tmpTaskTimeH->_TaskState){
 			case TASK_INIT: 
@@ -276,7 +279,7 @@ void HAL_SYSTICK_Callback(void)
 ****************************************************/
 void TaskTime_Run(void){
 	#ifdef LOAD_MONITOR_ON
-		COUNTER_OFF; 
+		COUNTER_OFF;
 	#endif
 	tmpTaskTime = TaskTime_Head;
 	do{ 
@@ -287,6 +290,7 @@ void TaskTime_Run(void){
 				break;
 			case TASK_READY:
 				#ifdef LOAD_MONITOR_ON
+					TIMER_Tmp = LOAD_TIMX->CNT;
 					COUNTER_ON; 
 				#endif
 				tmpTaskTime->_TaskState = TASK_WAIT; 
@@ -294,6 +298,13 @@ void TaskTime_Run(void){
 				tmpTaskTime->RunCount++;
 				#ifdef LOAD_MONITOR_ON
 					COUNTER_OFF; 
+					if(TIMER_Bak > 0){
+						tmpTaskTime->RunElapsed += (TIMER_Bak - TIMER_Tmp);
+						TIMER_Bak = 0;
+					}else{
+						uint16_t res = LOAD_TIMX->CNT - TIMER_Tmp;
+						tmpTaskTime->RunElapsed += res;
+					}
 				#endif
 				break;
 			case TASK_SUSPEND: 
@@ -307,7 +318,7 @@ void TaskTime_Run(void){
 				break;
 		}
 		tmpTaskTime = tmpTaskTime->_next;
-	}while(1);//tmpTaskTime != TaskTime_Head
+	}while(tmpTaskTime != TaskTime_Head);
 }
 
 #ifdef LOAD_MONITOR_ON 
@@ -316,28 +327,15 @@ void TaskTime_Run(void){
 	功能:		负载监视定时器配置 初始化
 	作者:		liyao 2016年8月8日16:41:22
 ****************************************************/
-static void TaskTime_Monitor_Init(void){
-	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-	//时钟
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-	TIM_DeInit(LOAD_TIMX); 
-	TIM_TimeBaseStructure.TIM_Period = 50000;
-	TIM_TimeBaseStructure.TIM_Prescaler = 7200-1;//1ms=10count
-	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(LOAD_TIMX, & TIM_TimeBaseStructure);
-	//使能 
-	TIM_ARRPreloadConfig(LOAD_TIMX, ENABLE);
-	
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-//	TIM_DeInit(TIM3); 
-//	TIM_TimeBaseStructure.TIM_Period = 50000;
-//	TIM_TimeBaseStructure.TIM_Prescaler = 7200-1;
-//	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-//	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-//	TIM_TimeBaseInit(TIM3, & TIM_TimeBaseStructure);
-//	//使能 
-//	TIM_ARRPreloadConfig(TIM3, ENABLE);
+static void TaskTime_Monitor_Init(void){ 
+	ENABLE_TIMX; 
+  LOAD_TIMX->ARR = (uint32_t)0xFFFF ; 
+#if MCU_TYPE == 103
+  LOAD_TIMX->PSC = (uint32_t)7200;
+#elif MCU_TYPE == 030 
+  LOAD_TIMX->PSC = (uint32_t)4800;
+#endif
+	LOAD_TIMX->CNT = 0;
 }
 
 /****************************************************
@@ -350,25 +348,27 @@ static void TaskTime_Monitor(void){
 	printf("-----系统监视-----\r\n");
 	tmpTaskTime = TaskTime_Head;
 	do{
-		printf("编号:%d\t索引:%d\t优先级:%d\t间隔:%dms\t运行次数:%d\t超时次数:%d\r\n",
+		printf("编号:%d\t索引:%d\t优先级:%d\t间隔:%dms\t运行次数:%d\t超时次数:%d\t使用率:%.2f%%\r\n",
 			tmpTaskTime->Alias,
 			tmpTaskTime->_TaskID,
 			tmpTaskTime->Priority,
 			tmpTaskTime->TaskCycle,
 			tmpTaskTime->RunCount,
-			tmpTaskTime->StoreCount
+			tmpTaskTime->StoreCount,
+			tmpTaskTime->RunElapsed/100.0
 		);
 		SYSTICK_IT_DISABLE();
-		tmpTaskTime->RunCount = tmpTaskTime->StoreCount = 0;
+		tmpTaskTime->RunCount = tmpTaskTime->StoreCount = tmpTaskTime->RunElapsed = 0;
 		SYSTICK_IT_ENABLE();
 		tmpTaskTime = tmpTaskTime->_next;
 	}while(tmpTaskTime != TaskTime_Head);
-	CPU_Use = TIM2->CNT/100.0;
+	CPU_Use = LOAD_TIMX->CNT/100.0;
 	if(CPU_Use > 100.00)
 		CPU_Use = 100.00;
-	printf("CPU使用率：%.2f%%,计时器：%d\r\n", CPU_Use,TIM2->CNT);
+	printf("CPU使用率：%.2f%%,计时器：%d\r\n", CPU_Use,LOAD_TIMX->CNT);
 	//printf("时间戳:%d\r\n", TIM2->CNT);
-	TIM2->CNT = 0;
+	TIMER_Bak = LOAD_TIMX->CNT;
+	LOAD_TIMX->CNT = 0;
 }
 #endif
 
