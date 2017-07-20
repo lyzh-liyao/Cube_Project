@@ -14,7 +14,7 @@
 	DMA_Sender_T Uart1_DMA_Sender = {0}; 
 #endif 
 #ifdef UART1_DMA_RECEIVER 
-	DMA_Receiver_T Uart1_DMA_Receiver = {0}; 
+	DMA_Receiver_T Uart1_DMA_Receiver = {0};  
 #endif 
 
 #ifdef UART2_DMA_SENDER 
@@ -36,14 +36,20 @@
 	DMA_Receiver_T Uart4_DMA_Receiver = {0}; 
 #endif 
 //--------------------------内部函数声明-----------------------------
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 static int8_t _ReadByte(DMA_Receiver_T* udr,uint8_t* data);
 static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_t len);
 static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len); 
-	
+#endif
+
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 static int8_t _Write(DMA_Sender_T* uds, uint8_t *data, uint8_t len);
 static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data);
 static int8_t _KeepTransmit(DMA_Sender_T* uds);
+#endif
 
+	
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 /****************************************************
 	函数名:	DMA_Sender_Init
 	功能:		初始化发送者
@@ -56,7 +62,9 @@ void DMA_Sender_Init(DMA_Sender_T* Uart_DMA_Sender, UART_HandleTypeDef* huart){
   Uart_DMA_Sender->WriteByte = _WriteByte;
   Uart_DMA_Sender->KeepTransmit = _KeepTransmit;
 }
+#endif
 
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 /****************************************************
 	函数名:	DMA_Receiver_Init
 	功能:		初始化接收者
@@ -75,8 +83,11 @@ void DMA_Receiver_Init(DMA_Receiver_T* Uart_DMA_Receiver, UART_HandleTypeDef* hu
   Uart_DMA_Receiver->ReadTo = _ReadTo;
   Uart_DMA_Receiver->Read = _Read;
   huart->hdmarx->Instance->CNDTR = BuffSize;
+	
   HAL_UART_Receive_DMA(huart, Uart_DMA_Receiver->Data, BuffSize); 
 }
+#endif
+
 /****************************************************
 	函数名:	ComBuff_Init
 	功能:		初始化全部通信缓冲区
@@ -109,7 +120,7 @@ void ComBuff_Init(void){
   DMA_Receiver_Init(&Uart4_DMA_Receiver, &huart4, UART4_DMA_RECV_SIZE); 
 #endif 
  }
-
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 /****************************************************
 	函数名:	_Write
 	功能:	通过串口DMA即刻发送一组数据
@@ -158,7 +169,30 @@ static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data){
 	return 0;
 }
 
+/****************************************************
+	函数名:	_KeepTransmit
+	功能:		当发频繁数据被加入缓存时，需要此函数触发发送缓冲区数据
+	参数:		发送者
+	返回值：dma未发送完返回-1，成功返回0 
+  作者:		liyao 2016年11月4日14:26:35	
+****************************************************/
+static int8_t _KeepTransmit(DMA_Sender_T* uds){
+  if(uds->OverFlag){//发送未完成则放入缓冲区 
+    return -1;
+  }
+  uint16_t cnt = 0;
+  if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
+    uds->Data = MALLOC(cnt); 
+    MALLOC_CHECK(uds->Data,"_Write");
+    Queue_Link_Get(uds->DMA_Send_Queue, uds->Data);
+    uds->Len = cnt; 
+    HAL_UART_Transmit_DMA(uds->Uart, uds->Data, uds->Len);
+  } 
+  return 0;
+}
+#endif
 
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 /****************************************************
 	函数名:	_ReadByte
 	功能:		从串口缓冲区读取1个字节
@@ -169,7 +203,8 @@ static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data){
 static int8_t _ReadByte(DMA_Receiver_T* udr,uint8_t* data){ 
 	uint16_t maxCur = (udr->DMA_BuffSize -  udr->Uart->hdmarx->Instance->CNDTR);
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
-		Log.error("DMA缓冲区破裂\r\n");
+		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
 		return -1;
 	}
 	if((udr->Reversal == 0 && udr->Recv_Cur < maxCur) || udr->Reversal == 1){ 
@@ -192,7 +227,9 @@ static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_
 	uint16_t i = 0,tmp_Recv_Cur = udr->Recv_Cur, maxCur = (udr->DMA_BuffSize - udr->Uart->hdmarx->Instance->CNDTR);
 	uint8_t tmp_Reversal = udr->Reversal;
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
-		Log.error("DMA缓冲区破裂\r\n");
+		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
+		
 		return -1;
 	}
   if((udr->Recv_Cur ==  maxCur) && (0 == udr->Reversal))
@@ -219,14 +256,15 @@ static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_
 /****************************************************
 	函数名:	_Read
 	功能:		从串口缓冲区读取N个字节
-	参数:		接收者,回填数组,回填数组长度
+	参数:		接收者,回填数组,回填数组长度 
 	返回值：成功读取到的字节数 缓冲区无数据-1 
 	作者:		liyao 2016年9月8日15:17:49	
 ****************************************************/
 static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len){
 	uint16_t i = 0,cnt = 0, maxCur = (udr->DMA_BuffSize - udr->Uart->hdmarx->Instance->CNDTR); 
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
-		Log.error("DMA缓冲区破裂\r\n");
+		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
 		return -1;
 	}
   if((udr->Recv_Cur ==  maxCur) && (0 == udr->Reversal))
@@ -245,40 +283,26 @@ static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len){
 			return cnt;
 	return -1;
 }
+#endif
 
-/****************************************************
-	函数名:	_KeepTransmit
-	功能:		当发频繁数据被加入缓存时，需要此函数触发发送缓冲区数据
-	参数:		发送者
-	返回值：dma未发送完返回-1，成功返回0 
-  作者:		liyao 2016年11月4日14:26:35	
-****************************************************/
-static int8_t _KeepTransmit(DMA_Sender_T* uds){
-  if(uds->OverFlag){//发送未完成则放入缓冲区 
-    return -1;
-  }
-  uint16_t cnt = 0;
-  if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
-    uds->Data = MALLOC(cnt); 
-    MALLOC_CHECK(uds->Data,"_Write");
-    Queue_Link_Get(uds->DMA_Send_Queue, uds->Data);
-    uds->Len = cnt; 
-    HAL_UART_Transmit_DMA(uds->Uart, uds->Data, uds->Len);
-  } 
-  return 0;
-}
  
 /****************************************************
 	函数名:	fputc
 	功能: 	printf重定向
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
-int fputc(int ch,FILE *f)
+__weak int fputc(int ch,FILE *f)
 {
 //	#ifndef PRINT_ERR
 //		Queue_Put(Uart_Tx_Queue, &ch); 
 //	#else
-  while(HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+#ifdef LL_LIB
+	LL_USART_TransmitData8(DEBUG_USART,ch);
+#else
+	while(HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+#endif
+//  
+	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender,(uint8_t*)&ch, 1);
 	//while(HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
 //	#endif
 	return(ch);	   
@@ -308,7 +332,7 @@ void Buff_To_Uart(void){
 
 //--------------------------------系统回调函数-------------------------------------
 
- 
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 /****************************************************
         函数名: HAL_UART_TxCpltCallback
         功能:   DMA发送完成中断 回调
@@ -340,7 +364,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
     }
   #endif    
 } 
-
+#endif
 
 /****************************************************
         函数名: HAL_UART_RxCpltCallback
@@ -351,35 +375,44 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   #ifdef UART1_DMA_RECEIVER
     if(huart == Uart1_DMA_Receiver.Uart){
-      if(++Uart1_DMA_Receiver.Reversal == 2)
+      if(++Uart1_DMA_Receiver.Reversal == 2){
         Log.error("USART1_DMA_接收数据被覆盖\r\n");
+				Uart1_DMA_Receiver.Reversal = 0;
+			}
       HAL_UART_Receive_DMA(huart, Uart1_DMA_Receiver.Data, Uart1_DMA_Receiver.DMA_BuffSize); 
     } 
   #endif 
   #ifdef UART2_DMA_RECEIVER
     if(huart == Uart2_DMA_Receiver.Uart){
-      if(++Uart2_DMA_Receiver.Reversal == 2)
+      if(++Uart2_DMA_Receiver.Reversal == 2){
         Log.error("USART2_DMA_接收数据被覆盖\r\n");
+				Uart2_DMA_Receiver.Reversal = 0;
+			}
       HAL_UART_Receive_DMA(huart, Uart2_DMA_Receiver.Data, Uart2_DMA_Receiver.DMA_BuffSize); 
     } 
   #endif 
   #ifdef UART3_DMA_RECEIVER
     if(huart == Uart3_DMA_Receiver.Uart){
-      if(++Uart3_DMA_Receiver.Reversal == 2)
+      if(++Uart3_DMA_Receiver.Reversal == 2){
         Log.error("USART3_DMA_接收数据被覆盖\r\n");
+				Uart3_DMA_Receiver.Reversal = 0;
+			}
       HAL_UART_Receive_DMA(huart, Uart3_DMA_Receiver.Data, Uart3_DMA_Receiver.DMA_BuffSize); 
     } 
   #endif  
   #ifdef UART4_DMA_RECEIVER
     if(huart == Uart4_DMA_Receiver.Uart){
-      if(++Uart4_DMA_Receiver.Reversal == 2)
+      if(++Uart4_DMA_Receiver.Reversal == 2){
         Log.error("USART4_DMA_接收数据被覆盖\r\n");
+				Uart4_DMA_Receiver.Reversal = 0;
+			}
       HAL_UART_Receive_DMA(huart, Uart4_DMA_Receiver.Data, Uart4_DMA_Receiver.DMA_BuffSize); 
     } 
   #endif      
 }
 #endif
 //--------------------------------快捷调用-------------------------------------
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 /****************************************************
         函数名: SenderKeepTransmit
         功能:   持续传输发送者缓冲区中的缓冲数据
@@ -399,7 +432,9 @@ __weak void SenderKeepTransmit(void){
   Uart4_DMA_Sender.KeepTransmit(&Uart4_DMA_Sender);
 #endif
 }
+#endif
 
+#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 /****************************************************
         函数名: PaddingProtocol
         功能:   从串口缓冲区中读取数据到协议解析器
@@ -426,4 +461,173 @@ __weak void PaddingProtocol(void){
 			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
 	#endif
 }
+#endif
+//--------------------------------printf实现-------------------------------------
+void printch(char ch);
+void printdec(int dec);
+void printflt(double flt);
+void printstr(char* str);
+void printbin(int bin);
+void printhex(int hex);
+void StringFormat(char* target, uint8_t type,const char* fmt,va_list vp);
+
+void printch(char ch)
+{
+#ifdef LL_LIB
+		LL_USART_TransmitData8(DEBUG_USART,ch);
+#else
+	while(HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+#endif
+}
+
+void mvprintf(const char* fmt,va_list vp){
+	StringFormat(NULL, 0, fmt, vp);
+}
+
+void msprintf(char* target,const char* fmt,va_list vp){
+	StringFormat(target, 1, fmt, vp);
+}
+
+void mprintf(const char* fmt, ...)
+{
+    va_list vp;
+    va_start(vp, fmt);
+		mvprintf(fmt, vp);
+    va_end(vp);
+}
+
+void StringFormat(char* target,uint8_t type,const char* fmt,va_list vp){
+	double vargflt = 0;
+    int  vargint = 0;
+    char* vargpch = NULL;
+    char vargch = 0;
+    const char* pfmt = NULL;
+    pfmt = fmt;
+
+    while(*pfmt)
+    {
+        if(*pfmt == '%')
+        {
+            switch(*(++pfmt))
+            {
+                
+                case 'c':
+                    vargch = va_arg(vp, int); 
+                    /*    va_arg(ap, type), if type is narrow type (char, short, float) an error is given in strict ANSI
+                        mode, or a warning otherwise.In non-strict ANSI mode, 'type' is allowed to be any expression. */
+                    printch(vargch);
+                    break;
+                case 'd':
+                case 'i':
+                    vargint = va_arg(vp, int);
+                    printdec(vargint);
+                    break;
+                case 'f':
+                    vargflt = va_arg(vp, double);
+                    /*    va_arg(ap, type), if type is narrow type (char, short, float) an error is given in strict ANSI
+                        mode, or a warning otherwise.In non-strict ANSI mode, 'type' is allowed to be any expression. */
+                    printflt(vargflt);
+                    break;
+                case 's':
+                    vargpch = va_arg(vp, char*);
+                    printstr(vargpch);
+                    break;
+                case 'b':
+                case 'B':
+                    vargint = va_arg(vp, int);
+                    printbin(vargint);
+                    break;
+                case 'x':
+                case 'X':
+                    vargint = va_arg(vp, int);
+                    printhex(vargint);
+                    break;
+                case '%':
+                    printch('%');
+                    break;
+                default:
+                    break;
+            }
+            pfmt++;
+        }
+        else
+        {
+						if(type == 0)
+							printch(*pfmt++);
+						else if(type == 1)
+							*target++ = *pfmt++;
+        }
+    }
+}
+
+
+void printdec(int dec)
+{
+	char buff[20] = {0};
+	int8_t i = 0;
+	int num = dec;
+	do{
+		num /= 10;
+		i++;
+	}while(num != 0);
+	
+	if(dec < 0){
+		buff[0] = '-';
+		i++;
+	}
+	while(--i >= 0){
+		buff[i] = dec%10 + '0';
+		dec /= 10;
+	}
+	printstr(buff);
+}
+
+void printflt(double flt)
+{
+    int tmpint = 0;
+    tmpint = (int)flt;
+    printdec(tmpint);
+    printch('.');
+    flt = flt - tmpint;
+    tmpint = (int)(flt * 1000000);
+    printdec(tmpint);
+}
+
+void printstr(char* str)
+{
+    while(*str)
+    {
+        printch(*str++);
+    }
+}
+
+void printbin(int bin)
+{
+    if(bin == 0)
+    {
+        printstr("0b");
+        return;
+    }
+    printbin(bin/2);
+    printch( (char)(bin%2 + '0'));
+}
+
+void printhex(int hex)
+{
+    if(hex==0)
+    {
+        printstr("0x");
+        return;
+    }
+    printhex(hex/16);
+    if(hex < 10)
+    {
+        printch((char)(hex%16 + '0'));
+    }
+    else
+    {
+        printch((char)(hex%16 - 10 + 'a' ));
+    }
+}
+
 

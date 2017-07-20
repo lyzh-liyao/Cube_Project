@@ -62,7 +62,7 @@ void TaskTime_Init(){
 //		TaskTimeLink[i]._TaskID = -1;
 //	}
 	
-	
+	srand(SysTick->VAL); 
 };
 
 /****************************************************
@@ -345,10 +345,10 @@ static void TaskTime_Monitor_Init(void){
 ****************************************************/
 static void TaskTime_Monitor(void){
 	float CPU_Use = 0;
-	printf("-----系统监视-----\r\n");
+	mprintf("-----系统监视-----\r\n");
 	tmpTaskTime = TaskTime_Head;
 	do{
-		printf("编号:%d\t索引:%d\t优先级:%d\t间隔:%dms\t运行次数:%d\t超时次数:%d\t使用率:%.2f%%\r\n",
+		mprintf("编号:%d\t索引:%d\t优先级:%d\t间隔:%dms\t运行次数:%d\t超时次数:%d\t使用率:%.2f%%\r\n",
 			tmpTaskTime->Alias,
 			tmpTaskTime->_TaskID,
 			tmpTaskTime->Priority,
@@ -365,8 +365,8 @@ static void TaskTime_Monitor(void){
 	CPU_Use = LOAD_TIMX->CNT/100.0;
 	if(CPU_Use > 100.00)
 		CPU_Use = 100.00;
-	printf("CPU使用率：%.2f%%,计时器：%d\r\n", CPU_Use,LOAD_TIMX->CNT);
-	//printf("时间戳:%d\r\n", TIM2->CNT);
+	mprintf("CPU使用率：%.2f%%,计时器：%d\r\n", CPU_Use,LOAD_TIMX->CNT);
+	//mprintf("时间戳:%d\r\n", TIM2->CNT);
 	TIMER_Bak = LOAD_TIMX->CNT;
 	LOAD_TIMX->CNT = 0;
 }

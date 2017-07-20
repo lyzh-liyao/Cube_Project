@@ -8,7 +8,7 @@
 static void TaskTime_Monitor(void);
 static void TaskTime_Monitor_Init(void);
 
-#define	SYSTICK_COUNT SystemCoreClock/8/1000 //9000
+#define	SYSTICK_COUNT SysTick->LOAD //9000
 #define SYSTICK_1US_COUNT	SYSTICK_COUNT/1000//9
 #define PRINT_HEAP() do{__iar_dlmalloc_stats();}while(0)
 

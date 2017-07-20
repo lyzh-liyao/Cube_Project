@@ -3,8 +3,6 @@
 #include "FrameConfig.h"
 #include "LOG.h" 
 #include "List.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len);
 //#define PRINT_ERR
@@ -52,9 +50,10 @@ List_Head_T* Transpond_Desc_P = NULL;
 ****************************************************/
 static void _clean_recv_buf(Protocol_Resolver_T* pr){
 	memset(&pr->pi, 0, sizeof(Protocol_Info_T)); 
+	FREE(pr->ParaData);
 	pr->Recv_State = 0;
 	pr->Cnt = 0;
-	pr->Index = 0;
+//	pr->Index = 0;
 	pr->Is_FE = 0;
 	pr->CheckSum = 0;
 }
@@ -84,23 +83,7 @@ static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	}
 }
 
-/****************************************************
-	函数名:	IsShift
-	参数:		原字符
-	功能: 	字符转义
-****************************************************/
-static uint16_t IsShift(uint8_t* Data){
-  if(*Data == 0xFD || *Data == 0xF8 || *Data == 0xFE){//??
-     switch(*Data){
-        case 0xFD:return 0xFE<<8 | 0x7D;
-        case 0xF8:return 0xFE<<8 | 0x78;
-        case 0xFE:return 0xFE<<8 | 0x7E;
-    }
-  }else{
-      return 0;
-  }
-  return 0;
-}
+
 
 //###################################对外函数区###################################
 
@@ -113,15 +96,13 @@ static uint16_t IsShift(uint8_t* Data){
 	作者:		liyao 2015年9月8日14:10:51
 ****************************************************/
 static uint8_t getCheckSum_ByProtocolInfo(Protocol_Info_T* pi){
-	uint8_t i, sum = 0; 
-#if PROTOCOL_VERSION == 2
-  sum += pi->Standby1;
-  sum += pi->Plen;
-  sum += pi->Module;
-  sum += pi->Serial;
-#endif
+	uint8_t sum = 0; 
   sum += pi->Action;
-  for(i = 0; i < pi->ParaLen; i++)
+  sum += pi->SrcModule;
+  sum += pi->TargetModule;
+  sum += pi->Serial;
+	sum += pi->DataLen;
+  for(uint8_t i = 0; i < pi->DataLen; i++)
     sum+=((uint8_t*)pi->ParameterList)[i];  
   return sum;
 }
@@ -132,8 +113,8 @@ static uint8_t getCheckSum_ByProtocolInfo(Protocol_Info_T* pi){
 	作者:		liyao 2016年9月18日16:12:16  
 ****************************************************/
 int8_t Protocol_Register(Protocol_Desc_T* Desc_T,PROTOCOL_TYPE Protocol_Type){
-	List_Head_T* tmp_Desc_Head;
-	switch((uint8_t)Protocol_Type){
+	List_Head_T* tmp_Desc_Head; 
+	switch((uint8_t)Protocol_Type){ 
 		case (uint8_t)SEND: 
 			tmp_Desc_Head = Send_Desc_P;
 			break;
@@ -144,12 +125,8 @@ int8_t Protocol_Register(Protocol_Desc_T* Desc_T,PROTOCOL_TYPE Protocol_Type){
 			tmp_Desc_Head = Transpond_Desc_P;
 			break;  
 	}
-	
-	Desc_T->SrcModule = (MODULE)(Desc_T->ModuleAction >> 12);
-	Desc_T->TargetModule = (MODULE)(Desc_T->ModuleAction & 0x0f);
 	List_Add(tmp_Desc_Head, Desc_T, sizeof(Protocol_Desc_T)); 
 	return -1;
-	
 }
 
 /****************************************************
@@ -157,7 +134,7 @@ int8_t Protocol_Register(Protocol_Desc_T* Desc_T,PROTOCOL_TYPE Protocol_Type){
 	功能:		获取协议描述信息
 	作者:		liyao 2016年9月18日16:12:16  
 ****************************************************/
-Protocol_Desc_T* Get_Protocol_Description(MODULE_ACTION ModuleAction,PROTOCOL_TYPE Protocol_Type){
+Protocol_Desc_T* Get_Protocol_Description(uint32_t ModuleAction, PROTOCOL_TYPE Protocol_Type){
 	List_Head_T* tmp_Desc_Head;
 	List_Node_T* Cur_Node = NULL;
 	switch((uint8_t)Protocol_Type){
@@ -175,7 +152,8 @@ Protocol_Desc_T* Get_Protocol_Description(MODULE_ACTION ModuleAction,PROTOCOL_TY
 	Cur_Node = tmp_Desc_Head->Head;
 	while(Cur_Node != NULL){
 		Protocol_Desc_T* pdt = Cur_Node->Data;
-		if(ModuleAction == pdt->ModuleAction)
+		//if(pdt->SrcModule == ModuleAction->Src && pdt->TargetModule == ModuleAction->Target && pdt->Action == ModuleAction->Action)
+		if(pdt->ModuleAction == ModuleAction)
 			return pdt;
 		Cur_Node = Cur_Node->Next;
 	} 
@@ -227,6 +205,27 @@ void ProtocolFrame_Init(){
 
 
 /****************************************************
+	函数名:	IsShift
+	参数:		原字符
+	功能: 	字符转义
+****************************************************/
+static void IsShift(uint8_t Data, uint8_t* Buff, uint8_t* len){
+  if(Data == 0xFD || Data == 0xF8 || Data == 0xFE){//??
+		 Buff[(*len)++] = 0xFE;
+     switch(Data){
+        case 0xFD:
+					Buff[(*len)++] = 0x7D;break;
+        case 0xF8:
+					Buff[(*len)++] = 0x78;break;
+        case 0xFE:
+					Buff[(*len)++] = 0x7E;break;
+    }
+  }else{
+      Buff[(*len)++] = Data;
+  }
+}
+
+/****************************************************
   函数名:  Protocol_Serialization
   功能:    将Protocol_Info对象序列化为数组
   参数:    Protocol_Info_T协议描述信息, 回填数组, 数组大小
@@ -234,54 +233,16 @@ void ProtocolFrame_Init(){
 ****************************************************/
 int8_t Protocol_Serialization(Protocol_Info_T* pi, uint8_t* data, uint8_t len){ 
 	uint8_t index = 0;
-	uint16_t tmpData = 0;
-	data[index++] = pi->Head; 
-	#if PROTOCOL_VERSION == 2
-  if((tmpData = IsShift(&pi->Standby1)) > 0){
-    data[index++] = tmpData>>8; 
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->Standby1;
+	data[index++] = pi->Head;
+  IsShift(pi->Action, data, &index);
+	IsShift(pi->SrcModule, data, &index);
+	IsShift(pi->TargetModule, data, &index);
+	IsShift(pi->Serial, data, &index);
+	IsShift(pi->DataLen, data, &index);
+	for(uint8_t i = 0; i < pi->DataLen; i++){//处理参数转义
+		IsShift(((uint8_t*)(pi->ParameterList))[i], data, &index);
   }
-  if((tmpData = IsShift(&pi->Plen)) > 0){
-    data[index++] = tmpData>>8; 
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->Plen;
-  }
-  if((tmpData = IsShift(&pi->Module)) > 0){
-    data[index++] = tmpData>>8; 
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->Module;
-  }
-  if((tmpData = IsShift(&pi->Serial)) > 0){
-    data[index++] = tmpData>>8; 
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->Serial;
-  }  
-#endif
-  if((tmpData = IsShift(&pi->Action)) > 0){
-    data[index++] = tmpData>>8;  
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->Action;
-  }
-	for(uint8_t i = 0; i < pi->ParaLen; i++){//处理参数转义
-    if((tmpData = IsShift((uint8_t*)pi->ParameterList + i)) > 0){
-      data[index++] = tmpData>>8;
-      data[index++] = tmpData&0xff;
-    }else{
-      data[index++] = ((uint8_t*)pi->ParameterList)[i];
-    }
-  }
-	if((tmpData = IsShift(&pi->CheckSum)) > 0){
-    data[index++] = tmpData>>8; 
-    data[index++] = tmpData&0xff; 
-  }else{
-    data[index++] = pi->CheckSum;
-  }  
+	IsShift(pi->CheckSum, data, &index);
   data[index++] = pi->Tail; 
   if(index > len)
     return -1; 
@@ -297,29 +258,25 @@ int8_t Protocol_Serialization(Protocol_Info_T* pi, uint8_t* data, uint8_t len){
 	注：协议历史编号统一处理
 	作者:		liyao 2016年9月18日11:50:55
 ****************************************************/
-void Protocol_Send(MODULE_ACTION ModuleAction, void* Data,uint8_t Len){ 
+void Protocol_Send(uint32_t ModuleAction, void* Data,uint8_t Len){ 
 	Protocol_Info_T pi = {0};
 	int8_t cnt = 0;
 	pi.ParameterList = MALLOC(Len);
 	MALLOC_CHECK(pi.ParameterList, "Protocol_Send"); 
 	pi.ProtocolDesc = Get_Protocol_Description(ModuleAction, SEND);
-	pi.ParaLen = Len;
+	if(pi.ProtocolDesc != NULL && pi.ProtocolDesc->ProtocolSize != Len)
+		Log.waring("协议数据长度不匹配\r\n");
+	pi.DataLen = Len;
 	pi.Head = 0xFD;
-	pi.Plen = Len + 3;//参数个数+3   帧长度
-	pi.Module = ModuleAction >> 8; 
+	pi.AllLen = Len + 8;//参数个数+3   帧长度
+	pi.SrcModule = (ModuleAction >> SRC_MODULE_Pos) & 0xFF;
+	pi.TargetModule = (ModuleAction >> TARGET_MODULE_Pos) & 0xFF;
+	pi.Action = (ModuleAction >> ACTION_MODULE_Pos) & 0xFF;
 	pi.Serial = pi.ProtocolDesc->Serial++;
-	pi.Action = ModuleAction & 0x00ff;
-//	pi.ParameterList = *Protocol_t; 
 	memcpy(pi.ParameterList, Data, Len);
 	pi.CheckSum = getCheckSum_ByProtocolInfo(&pi); 
 	pi.Tail = 0xF8;
-	pi.ParaLen = Len;
 	
-	#if PROTOCOL_VERSION == 1
-	pi.AllLen = Len + 4;
-	#elif PROTOCOL_VERSION == 2
-	pi.AllLen = pi.Plen + 5;
-	#endif
 	uint8_t* data = MALLOC(pi.AllLen * 2);
 	MALLOC_CHECK(data, "Protocol_Send"); 
 	if((cnt = Protocol_Serialization(&pi, data, pi.AllLen * 2)) == -1)
@@ -365,116 +322,11 @@ void FetchProtocols(void)
 	#endif
 }
 
-#if PROTOCOL_VERSION == 1
-/****************************************************
-	函数名:	Protocol_Put
-	功能:		接收协议数据并解析封装
-	参数:		协议数据
-	注意: 	通过protocol_flag标志位标示是否解析出新的协议
-	作者:		liyao 2015年9月8日14:10:51
-****************************************************/
+//帧头	帧类型	源模块	目标模块	历史数据编号	数据长度	数据	校验和	帧尾
 static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
-	uint8_t i, data;
+	uint8_t data = 0; 
 	List_Node_T* Cur_Node = Recv_Desc_P->Head;
-	
-	for(i = 0; i < len; i++){
-		data = datas[i];
-    if(pr->pi.Head != 0xFD && data != 0xFD)
-      continue;
-		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
-			_clean_recv_buf(pr);
-			Log.error("协议中途出现0xFD\r\n");
-			pr->pi.Head = 0xFD;
-			continue;
-		}
-		if(data == 0xFE){//处理转义
-			pr->Is_FE = 1;
-			continue;
-		}else if(pr->Is_FE){
-			switch(data){
-				case 0x7D: data = 0xFD;break;
-				case 0x78: data = 0xF8;break;
-				case 0x7E: data = 0xFE;break;
-			} 
-			pr->Is_FE = 0;
-		} 
-	//协议解析状态机
-		switch(pr->Recv_State){
-			case 0:	//处理帧头
-						pr->pi.Head = data;
-						pr->Recv_State++; 
-						break;
-			case 1:	//处理帧类型
-						pr->pi.Action = data;
-						pr->Recv_State++; 
-						break;
-			case 2: //处理参数 至 帧尾
-						pr->ParaData[pr->Index++] = data; 
-            if(data == 0xF8){
-              //校验和处理 
-              pr->pi.ParaLen = pr->Index - 2;
-              pr->pi.CheckSum = pr->ParaData[pr->Index-2];//倒数第二个值为校验和  
-              for(uint8_t j = 0; j < pr->pi.ParaLen;j++)
-                pr->CheckSum += pr->ParaData[j];
-              pr->CheckSum += pr->pi.Action;
-              
-              #if PROTOCOL_CHECKSUM == 1
-              if(((uint8_t)pr->CheckSum & 0xff) != pr->pi.CheckSum){
-                uint8_t mess[50] = {0};
-                sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
-                Log.error((char const*)mess);
-                _clean_recv_buf(pr);
-                return -3;
-              }
-              #endif              
-              //帧尾处理
-              pr->pi.Tail = data;
-              //协议匹配处理
-              while(Cur_Node != NULL){
-                Protocol_Desc_T* pdt = Cur_Node->Data;
-                if(	pr->pi.Action ==  (pdt->ModuleAction & 0xff) &&//目标板匹配,动作匹配 
-                    pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
-                { 
-									pr->pi.AllLen = pr->pi.ParaLen + 4;
-                  pr->pi.ParameterList = MALLOC(pr->Index);
-                  MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
-                  memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
-                  pr->pi.ProtocolDesc = pdt;
-                  break;
-                }
-                Cur_Node = Cur_Node->Next;
-              }
-              //匹配结果处理 
-              if(Cur_Node == NULL){//校验不通过 
-                FREE(pr->pi.ParameterList);
-                _clean_recv_buf(pr);
-                Log.error("现有协议库无匹配当前协议\r\n");
-                return -5;
-              }else{
-                Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
-                //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
-                _clean_recv_buf(pr); 
-              } 
-            }
-						break; 					
-		}
-	}; 
-	return 0;
-}
-#elif PROTOCOL_VERSION == 2
-/****************************************************
-	函数名:	Protocol_Put
-	功能:		接收协议数据并解析封装
-	参数:		协议数据
-	注意: 	通过protocol_flag标志位标示是否解析出新的协议
-	作者:		liyao 2015年9月8日14:10:51
-****************************************************/
-static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
-	uint8_t i, data; 
-	uint16_t src_board_action;
-	List_Node_T* Cur_Node = Recv_Desc_P->Head;
-	
-	for(i = 0; i < len; i++){ 
+	for(uint8_t i = 0; i < len; i++){
 		data = datas[i];
     if(pr->pi.Head != 0xFD && data != 0xFD)
       continue;
@@ -504,75 +356,77 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 						pr->pi.Head = data;
 						pr->Recv_State++; 
 						break;
-			case 1:	//处理预留位
-						pr->pi.Standby1 = data;
+			case 1:	//处理指令码
+						pr->pi.Action = data;
 						pr->Recv_State++; 
 						break;
-			case 2: //处理帧长(从ID到数据位最后一个)
+			case 2: //处理源模块
+						pr->pi.SrcModule = data;
 						pr->Recv_State++; 
-						pr->pi.Plen = data;
-						if(data < 4){
-							_clean_recv_buf(pr);
-							Log.error("处理帧长错误\r\n");
-							return -2;
-						}
-						else
-							pr->Cnt = pr->pi.ParaLen = data - 3;//计算结果为参数个数
-							pr->pi.AllLen = data + 5;//计算结果为协议总长度包括FD、F8
 						break;
 			case 3: //处理目标板
-						pr->pi.Module = data;
+						pr->pi.TargetModule = data;
 						pr->Recv_State++; 
 						break;
 			case 4: //处理编号
 						pr->pi.Serial = data;
 						pr->Recv_State++; 
 						break;
-			case 5: //处理指令码(ACTION)
-						pr->pi.Action = data;
+			case 5: //处理数据长度
 						pr->Recv_State++; 
+						pr->pi.DataLen = pr->Cnt = data;
+						pr->pi.AllLen = data + 8;
+//						if(pr->pi.AllLen > len){
+//							Log.error("数据长度错误:%X\r\n", data);
+//							_clean_recv_buf(pr);
+//							return DATALEN_ERR_P;
+//						}
+						if(data == 0)
+							pr->Recv_State++;
+						pr->ParaData = MALLOC(data);//申请存放参数的空间
+						MALLOC_CHECK(pr->ParaData,"");
 						break;
 			case 6: //处理参数 
-						pr->ParaData[pr->Index++] = data;
-						//((uint8_t *)(&pr->pi.ParameterList))[pr->index++] = data;  
-						if(--pr->Cnt == 0)
-							pr->Recv_State++;
+						pr->ParaData[pr->pi.DataLen - pr->Cnt--] = data;
+							if(pr->Cnt == 0){
+								pr->Recv_State++;
+								break;
+						}
 						break;
 			case 7: //处理校验和校验  
 						pr->pi.CheckSum = data;
             #ifdef PROTOCOL_CHECKSUM
               pr->Recv_State++; 
               break;
-            #endif
+            #else
 						/*校验和暂时关闭*/
-						if(((uint8_t)pr->CheckSum & 0xff) != data){
-              uint8_t mess[50] = {0};
-              sprintf((char *)mess, "协议校验和错误:%X\r\n", pr->CheckSum);
-							Log.error((char const*)mess);
+						if(((uint8_t)pr->CheckSum & 0xFF) != data){
+							Log.error("协议校验和错误:%X\r\n", pr->CheckSum);
 							_clean_recv_buf(pr);
-							return -3;
+							return CHECKSUM_ERR_P;
 						}else{ 
 							pr->Recv_State++; 
 						} 
 						break;
+						#endif
 			case 8: //处理帧尾 帧类型和长度进行匹配 
 						if(data != 0xF8){
 							_clean_recv_buf(pr);
 							Log.error("帧尾位置非0xF8错误\r\n");
-							return -4;
+							return TAIL_ERR_P;
 						}
 						pr->pi.Tail = data;
-						src_board_action = pr->pi.Module << 8 | pr->pi.Action;
+						
 
 						while(Cur_Node != NULL){
 							Protocol_Desc_T* pdt = Cur_Node->Data;
-							if(	src_board_action ==  pdt->ModuleAction &&//目标板匹配,动作匹配 
-									pr->pi.ParaLen == pdt->ProtocolSize)//帧长度匹配
+							uint32_t tmpModuleAction = TO_MODULE_ACTION(pr->pi.SrcModule, pr->pi.TargetModule, pr->pi.Action);
+							if( (tmpModuleAction == pdt->ModuleAction || TO_BROADCAST_MODULE_ACTION(tmpModuleAction) == TO_BROADCAST_MODULE_ACTION(pdt->ModuleAction))//目标模块匹配或者广播匹配
+								&& pr->pi.DataLen == pdt->ProtocolSize)//帧长度匹配 
 							{
-								pr->pi.AllLen = pr->pi.Plen + 5;
-								pr->pi.ParameterList = MALLOC(pr->Index);
+								pr->pi.ParameterList = MALLOC(pr->pi.DataLen);
 								MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
-								memcpy(pr->pi.ParameterList, pr->ParaData, pr->Index);
+								memcpy(pr->pi.ParameterList, pr->ParaData, pr->pi.DataLen);
 								pr->pi.ProtocolDesc = pdt;
 								break;
 							}
@@ -583,7 +437,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 							FREE(pr->pi.ParameterList);
 							_clean_recv_buf(pr);
 							Log.error("现有协议库无匹配当前协议\r\n");
-							return -5;
+							return EQUALS_ERR_P;
 						}else{
 							Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
               //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
@@ -593,6 +447,5 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 		}
 	}; 
 	return 0;
-} 
-#endif
+}
 

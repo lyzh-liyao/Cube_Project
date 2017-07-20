@@ -6,9 +6,9 @@
 /*------------------------------LOG------------------------------*/
 typedef struct _Log_T Log_T;
 struct _Log_T{
-	void(*info)(const char*);
-	void(*waring)(const char*);
-	void(*error)(const char*);
+	void(*info)(const char* fmt, ...);
+	void(*waring)(const char* fmt, ...);
+	void(*error)(const char* fmt, ...);
 };
 
 extern Log_T Log;
@@ -18,15 +18,15 @@ extern void Log_Init(void);
 /*------------------------------MEM_LOG------------------------------*/
 
 #define POINT_COUNT 1 
-#define MALLOC_CHECK(var, fun) do{if(var == NULL){ Log.error(__FUNCTION__);Log.error("ø’º‰∑÷≈‰ ß∞‹");}}while(0)
+#define MALLOC_CHECK(var, fun) do{if(var == NULL){ Log.error("%s.%d----->ø’º‰∑÷≈‰ ß∞‹ %s", __FUNCTION__, __LINE__, fun);}}while(0)
 #define FREE_CHECK(var,len) do{}while(0);
 	
 //#define MALLOC(len) os_malloc(len)
-//#define CALLOC(len, size) os_malloc(len)
+//#define CALLOC(len, size) os_calloc(len)
 //#define FREE(point) os_free(point)
-#define MALLOC(len) malloc(len%2?len+1:len)
+#define MALLOC(len) os_malloc(len%2?len+1:len)
 #define REALLOC(p,len) realloc(p, len%2?len+1:len)
-#define CALLOC(len, size) malloc(len%2?len+1:len) 
+#define CALLOC(len, size) os_calloc(len, size)
 //#define MALLOC(len) malloc(len)
 //#define CALLOC(len, size) malloc(len) 
 #define FREE(point) free(point)
