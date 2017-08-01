@@ -97,16 +97,16 @@ struct _PROTOCOL_RESOLVER_T{
 
 
 //###################################ÉùÃ÷Çø################################### 
-#if PROTOCOL_RESOLVER_1
+#if PROTOCOL_RESOLVER_1 || PROTOCOL_RESOLVER_IT_1
 	extern Protocol_Resolver_T *ProtocolResolver_1; 
 #endif
-#if PROTOCOL_RESOLVER_2
+#if PROTOCOL_RESOLVER_2 || PROTOCOL_RESOLVER_IT_2
 	extern Protocol_Resolver_T *ProtocolResolver_2; 
 #endif
-#if PROTOCOL_RESOLVER_3
+#if PROTOCOL_RESOLVER_3 || PROTOCOL_RESOLVER_IT_3
 	extern Protocol_Resolver_T *ProtocolResolver_3; 
 #endif
-#if PROTOCOL_RESOLVER_4
+#if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 	extern Protocol_Resolver_T *ProtocolResolver_4; 
 #endif
 

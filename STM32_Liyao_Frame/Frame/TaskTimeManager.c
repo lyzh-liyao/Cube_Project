@@ -245,7 +245,7 @@ void HAL_SYSTICK_Callback(void)
 			case TASK_INIT: 
 			case TASK_WAIT:   
 			case TASK_READY:
-				if(--tmpTaskTimeH->_TaskCycleCount == 0){
+				if(--tmpTaskTimeH->_TaskCycleCount <= 0){
 					tmpTaskTimeH->_TaskCycleCount = tmpTaskTimeH->TaskCycle;//填充计数
 					if(tmpTaskTimeH->_TaskState == TASK_READY) 
 						tmpTaskTimeH->StoreCount++;//累加未能执行次数
@@ -256,8 +256,10 @@ void HAL_SYSTICK_Callback(void)
 			case TASK_SUSPEND: 
 				break;
 			case TASK_RECOVER: 
-				tmpTaskTimeH->RunCount = tmpTaskTimeH->TaskCycle;
+				tmpTaskTimeH->_TaskCycleCount = tmpTaskTimeH->TaskCycle;//填充计数
+				//tmpTaskTimeH->RunCount = tmpTaskTimeH->TaskCycle;
 				tmpTaskTimeH->_TaskState = TASK_WAIT;
+			
 				break;
 			case TASK_REMOVE:  
 				break;

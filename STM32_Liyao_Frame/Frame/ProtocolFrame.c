@@ -21,22 +21,22 @@ List_Head_T* Transpond_Desc_P = NULL;
  
 
 
-#if PROTOCOL_RESOLVER_1
+#if PROTOCOL_RESOLVER_1	|| PROTOCOL_RESOLVER_IT_1
 	#define RESOLVER_1_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
 	Protocol_Resolver_T _ProtocolResolver_1; 
 	Protocol_Resolver_T* ProtocolResolver_1 = &_ProtocolResolver_1;
 #endif
-#if PROTOCOL_RESOLVER_2
+#if PROTOCOL_RESOLVER_2 || PROTOCOL_RESOLVER_IT_2
 	#define RESOLVER_2_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
 	Protocol_Resolver_T _ProtocolResolver_2;
 	Protocol_Resolver_T* ProtocolResolver_2 = &_ProtocolResolver_2;
 #endif
-#if PROTOCOL_RESOLVER_3
+#if PROTOCOL_RESOLVER_3 || PROTOCOL_RESOLVER_IT_3
 	#define RESOLVER_3_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
 	Protocol_Resolver_T _ProtocolResolver_3; 
 	Protocol_Resolver_T* ProtocolResolver_3 = &_ProtocolResolver_3;
 #endif
-#if PROTOCOL_RESOLVER_4
+#if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 	#define RESOLVER_4_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
 	Protocol_Resolver_T _ProtocolResolver_4;
 	Protocol_Resolver_T* ProtocolResolver_4 = &_ProtocolResolver_4;
@@ -174,32 +174,44 @@ void ProtocolFrame_Init(){
 	//协议列表初始化
 	Protocol_Init();
 	//发送数据队列初始化 
-#if PROTOCOL_RESOLVER_1
+#if PROTOCOL_RESOLVER_1 || PROTOCOL_RESOLVER_IT_1
 //	ProtocolResolver_1->Protocol_Queue = Queue_Init( _UART1_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_1_RPQUEUE_SIZE);
 	ProtocolResolver_1->Protocol_Queue = Queue_Link_Init(RESOLVER_1_RPQUEUE_SIZE); 
 	ProtocolResolver_1->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_1->Fetch_Protocol = _Fetch_Protocol;
+	#if PROTOCOL_RESOLVER_IT_1
+		SET_BIT(USART1->CR1, USART_CR1_RXNEIE);
+	#endif
 #endif  
 
-#if PROTOCOL_RESOLVER_2
+#if PROTOCOL_RESOLVER_2 || PROTOCOL_RESOLVER_IT_2
 //	ProtocolResolver_2->Protocol_Queue = Queue_Init( _UART2_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_2_RPQUEUE_SIZE);
 	ProtocolResolver_2->Protocol_Queue = Queue_Link_Init(RESOLVER_2_RPQUEUE_SIZE); 
 	ProtocolResolver_2->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_2->Fetch_Protocol = _Fetch_Protocol;
+	#if PROTOCOL_RESOLVER_IT_2
+		SET_BIT(USART2->CR1, USART_CR1_RXNEIE);
+	#endif
 #endif  
 	
-#if PROTOCOL_RESOLVER_3
+#if PROTOCOL_RESOLVER_3 || PROTOCOL_RESOLVER_IT_3
 //	ProtocolResolver_3->Protocol_Queue = Queue_Init( _UART3_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_3_RPQUEUE_SIZE);
 	ProtocolResolver_3->Protocol_Queue = Queue_Link_Init(RESOLVER_3_RPQUEUE_SIZE); 
 	ProtocolResolver_3->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_3->Fetch_Protocol = _Fetch_Protocol;
+	#if PROTOCOL_RESOLVER_IT_3
+		SET_BIT(USART3->CR1, USART_CR1_RXNEIE);
+	#endif
 #endif 
 	
-#if PROTOCOL_RESOLVER_4
+#if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 //	ProtocolResolver_4->Protocol_Queue = Queue_Init( _UART4_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_4_RPQUEUE_SIZE);
 	ProtocolResolver_4->Protocol_Queue = Queue_Link_Init(RESOLVER_4_RPQUEUE_SIZE); 
 	ProtocolResolver_4->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_4->Fetch_Protocol = _Fetch_Protocol;
+	#if PROTOCOL_RESOLVER_IT_4
+		SET_BIT(USART4->CR1, USART_CR1_RXNEIE);
+	#endif	
 #endif
 }
 
@@ -308,16 +320,16 @@ void Protocol_Send_Transpond(Protocol_Info_T* pi){
 ******************************************************************/
 void FetchProtocols(void)
 {
-	#if PROTOCOL_RESOLVER_1
+	#if PROTOCOL_RESOLVER_1 || PROTOCOL_RESOLVER_IT_1
 		ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
 	#endif
-	#if PROTOCOL_RESOLVER_2
+	#if PROTOCOL_RESOLVER_2 || PROTOCOL_RESOLVER_IT_2
 		ProtocolResolver_2->Fetch_Protocol(ProtocolResolver_2);
 	#endif
-	#if PROTOCOL_RESOLVER_3
+	#if PROTOCOL_RESOLVER_3 || PROTOCOL_RESOLVER_IT_3
 		ProtocolResolver_3->Fetch_Protocol(ProtocolResolver_3);
 	#endif
-	#if PROTOCOL_RESOLVER_4
+	#if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 		ProtocolResolver_4->Fetch_Protocol(ProtocolResolver_4);
 	#endif
 }

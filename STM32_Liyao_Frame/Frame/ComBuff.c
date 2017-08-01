@@ -432,9 +432,11 @@ __weak void SenderKeepTransmit(void){
   Uart4_DMA_Sender.KeepTransmit(&Uart4_DMA_Sender);
 #endif
 }
+#else
+__weak void SenderKeepTransmit(void){;}
 #endif
 
-#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
+#if  (PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER) || (PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER)|| (PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER) || (PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER)
 /****************************************************
         函数名: PaddingProtocol
         功能:   从串口缓冲区中读取数据到协议解析器
@@ -460,6 +462,42 @@ __weak void PaddingProtocol(void){
 		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
 			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
 	#endif
+}
+#else
+__weak void PaddingProtocol(void){;}
+#endif
+
+#if PROTOCOL_RESOLVER_IT_1 || PROTOCOL_RESOLVER_IT_2 || PROTOCOL_RESOLVER_IT_3 || PROTOCOL_RESOLVER_IT_4
+__weak uint8_t  PaddingProtocol_IT(void){
+#if PROTOCOL_RESOLVER_IT_1
+	if(((READ_REG(USART1->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART1->RDR);
+		ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,&UartData,1);
+		return 1;
+	}
+#endif
+#if PROTOCOL_RESOLVER_IT_2
+	if(((READ_REG(USART2->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART2->RDR);
+		ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,&UartData,1);
+		return 1;
+	}
+#endif
+#if PROTOCOL_RESOLVER_IT_3
+	if(((READ_REG(USART3->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART3->RDR);
+		ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,&UartData,1);
+		return 1;
+	}
+#endif
+#if PROTOCOL_RESOLVER_IT_4
+	if(((READ_REG(USART4->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART4->RDR);
+		ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,&UartData,1);
+		return 1;
+	}
+#endif
+	return 0;
 }
 #endif
 //--------------------------------printf实现-------------------------------------

@@ -38,8 +38,8 @@ struct _TaskTime_T{
 	int8_t 	Priority;				  //优先级
 	TASK_MODE TaskMode;				//任务模式
 	TaskState _TaskState;			//任务状态
-	uint16_t 	_TaskCycleCount;//周期计数器
-	uint16_t 	TaskCycle;		 	//周期数
+	int16_t 	_TaskCycleCount;//周期计数器
+	int16_t 	TaskCycle;		 	//周期数
 	void(*Run)(void);				 	//执行的函数
 	uint16_t		StoreCount;			//未能按时执行次数
 	uint16_t	RunCount;			 	//执行次数

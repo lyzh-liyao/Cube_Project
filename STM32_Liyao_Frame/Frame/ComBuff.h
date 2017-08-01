@@ -109,6 +109,7 @@ extern void ComBuff_Configuration(void);
 
 extern void PaddingProtocol(void);
 extern void SenderKeepTransmit(void);
+extern uint8_t PaddingProtocol_IT(void);
 
 
 //--------------------------------printf µœ÷-------------------------------------
