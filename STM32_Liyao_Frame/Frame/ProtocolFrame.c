@@ -4,6 +4,7 @@
 #include "LOG.h" 
 #include "List.h"
 #include <string.h>
+#include "TaskTimeManager.h"
 static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len);
 //#define PRINT_ERR
 //###################################对外变量区###################################
@@ -167,7 +168,7 @@ Protocol_Desc_T* Get_Protocol_Description(uint32_t ModuleAction, PROTOCOL_TYPE P
 	功能:		初始化全部协议和相关校验、执行函数
 	作者:		liyao 2015年9月8日14:10:51      
 ****************************************************/
-void ProtocolFrame_Init(){ 
+void ProtocolFrame_Init(){
 	Send_Desc_P = List_Init(0);
 	Recv_Desc_P = List_Init(0);
 	Transpond_Desc_P = List_Init(0);
@@ -212,6 +213,11 @@ void ProtocolFrame_Init(){
 	#if PROTOCOL_RESOLVER_IT_4
 		SET_BIT(USART4->CR1, USART_CR1_RXNEIE);
 	#endif	
+#endif
+
+#ifdef __TASKTIMEMANAGER_H__
+	/*-----------协议执行任务-----------------*/
+	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Real_Mode);
 #endif
 }
 
@@ -278,6 +284,10 @@ void Protocol_Send(uint32_t ModuleAction, void* Data,uint8_t Len){
 	pi.ProtocolDesc = Get_Protocol_Description(ModuleAction, SEND);
 	if(pi.ProtocolDesc != NULL && pi.ProtocolDesc->ProtocolSize != Len)
 		Log.waring("协议数据长度不匹配\r\n");
+	else if(pi.ProtocolDesc == NULL){
+		Log.waring("未匹配到发送协议\r\n");
+		return;
+	}
 	pi.DataLen = Len;
 	pi.Head = 0xFD;
 	pi.AllLen = Len + 8;//参数个数+3   帧长度
@@ -346,6 +356,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 			_clean_recv_buf(pr);
 			Log.error("协议中途出现0xFD\r\n");
 			pr->pi.Head = 0xFD;
+			pr->Recv_State++; 
 			continue;
 		}
 		if(data == 0xFE){//处理转义
@@ -363,6 +374,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 		if(pr->Recv_State > 0 && pr->Recv_State < 7)//排除帧头帧尾计算校验和
 			pr->CheckSum += data;
 	//协议解析状态机
+		
 		switch(pr->Recv_State){
 			case 0:	//处理帧头
 						pr->pi.Head = data;

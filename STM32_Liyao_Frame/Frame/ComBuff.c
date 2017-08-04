@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>  
 #include "ProtocolFrame.h"
+#include "TaskTimeManager.h"
 //--------------------------内部变量声明-----------------------------
 //UART1 接收发送者定义和缓冲区空间分配
 #ifdef UART1_DMA_SENDER 
@@ -93,7 +94,7 @@ void DMA_Receiver_Init(DMA_Receiver_T* Uart_DMA_Receiver, UART_HandleTypeDef* hu
 	功能:		初始化全部通信缓冲区
 	作者:		liyao 2016年4月4日22:02:12 
 ****************************************************/
-void ComBuff_Init(void){ 
+void ComBuff_Init(void){
 //UART1 初始化
 #ifdef UART1_DMA_SENDER
   DMA_Sender_Init(&Uart1_DMA_Sender, &huart1);
@@ -119,6 +120,12 @@ void ComBuff_Init(void){
 #ifdef UART4_DMA_RECEIVER
   DMA_Receiver_Init(&Uart4_DMA_Receiver, &huart4, UART4_DMA_RECV_SIZE); 
 #endif 
+#ifdef __TASKTIMEMANAGER_H__
+	/*-----------持续传输任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Real_Mode);
+	/*-----------协议解析任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Real_Mode);
+#endif
  }
 #if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 /****************************************************
@@ -164,7 +171,8 @@ static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data){
     uds->Data = MALLOC(1); 
     MALLOC_CHECK(uds->Data,"_Write");
     uds->Data[0] = data;
-	  HAL_UART_Transmit_DMA(uds->Uart, uds->Data, 1); 
+		uds->Len = 1;
+	  HAL_UART_Transmit_DMA(uds->Uart, uds->Data, uds->Len); 
 	  uds->OverFlag = 1; 
 	return 0;
 }
@@ -299,7 +307,7 @@ __weak int fputc(int ch,FILE *f)
 #ifdef LL_LIB
 	LL_USART_TransmitData8(DEBUG_USART,ch);
 #else
-	while(HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+		while( HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
 #endif
 //  
 	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender,(uint8_t*)&ch, 1);
@@ -409,6 +417,61 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
       HAL_UART_Receive_DMA(huart, Uart4_DMA_Receiver.Data, Uart4_DMA_Receiver.DMA_BuffSize); 
     } 
   #endif      
+}
+#endif
+ 
+#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER ||\
+		 UART1_DMA_SENDER	  || UART2_DMA_SENDER   || UART3_DMA_SENDER   || UART4_DMA_SENDER
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
+	#ifdef UART1_DMA_SENDER
+	if(huart == Uart1_DMA_Sender.Uart){
+	  HAL_UART_Transmit_DMA(Uart1_DMA_Sender.Uart, Uart1_DMA_Sender.Data, Uart1_DMA_Sender.Len); 
+		Log.error("huart1 TX DMA error\r\n");
+	}
+	#endif
+	#ifdef UART2_DMA_SENDER
+	if(huart == Uart2_DMA_Sender.Uart){
+	  HAL_UART_Transmit_DMA(Uart2_DMA_Sender.Uart, Uart2_DMA_Sender.Data, Uart2_DMA_Sender.Len); 
+		Log.error("huart2 TX DMA error\r\n");
+	}
+	#endif
+	#ifdef UART3_DMA_SENDER
+	if(huart == Uart3_DMA_Sender.Uart){
+	  HAL_UART_Transmit_DMA(Uart3_DMA_Sender.Uart, Uart3_DMA_Sender.Data, Uart3_DMA_Sender.Len); 
+		Log.error("huart3 TX DMA error\r\n");
+	}
+	#endif
+	#ifdef UART4_DMA_SENDER
+	if(huart == Uart4_DMA_Sender.Uart){
+	  HAL_UART_Transmit_DMA(Uart4_DMA_Sender.Uart, Uart4_DMA_Sender.Data, Uart4_DMA_Sender.Len); 
+		Log.error("huart4 TX DMA error\r\n");
+	}
+	#endif
+	
+	#ifdef UART1_DMA_RECEIVER
+	if(huart == Uart1_DMA_Receiver.Uart){
+		HAL_UART_Receive_DMA(huart, Uart1_DMA_Receiver.Data, UART1_DMA_RECV_SIZE); 
+		Log.error("huart1 RX DMA error\r\n");
+	}
+	#endif
+	#ifdef UART2_DMA_RECEIVER
+	if(huart == Uart2_DMA_Receiver.Uart){
+		HAL_UART_Receive_DMA(huart, Uart2_DMA_Receiver.Data, UART2_DMA_RECV_SIZE);
+		Log.error("huart2 RX DMA error\r\n"); 
+	}
+	#endif
+	#ifdef UART3_DMA_RECEIVER
+	if(huart == Uart3_DMA_Receiver.Uart){
+		HAL_UART_Receive_DMA(huart, Uart3_DMA_Receiver.Data, UART3_DMA_RECV_SIZE);
+		Log.error("huart3 RX DMA error\r\n"); 
+	}
+	#endif
+	#ifdef UART4_DMA_RECEIVER
+	if(huart == Uart4_DMA_Receiver.Uart){
+		HAL_UART_Receive_DMA(huart, Uart4_DMA_Receiver.Data, UART4_DMA_RECV_SIZE); 
+		Log.error("huart4 RX DMA error\r\n");
+	}
+	#endif
 }
 #endif
 //--------------------------------快捷调用-------------------------------------

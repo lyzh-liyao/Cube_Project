@@ -11,7 +11,8 @@ FE->FE 7E		*/
 #define SRC_MODULE_Pos 16
 #define TARGET_MODULE_Pos 8
 #define ACTION_MODULE_Pos 0
-
+#define u8 uint8_t 
+#define HandleAdd(FunName)   extern void FunName(Protocol_Info_T* pi)
 //将特征包转换成广播特征
 #define TO_BROADCAST_MODULE_ACTION(MODULE_ACTION) (MODULE_ACTION | 0x0000FF00)
 //组合成uint32_t类型的特征包

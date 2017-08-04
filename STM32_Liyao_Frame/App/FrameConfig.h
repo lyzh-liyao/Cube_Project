@@ -13,5 +13,14 @@
 #define MCU_TYPE 030
 #define PROTOCOL_VERSION 3 //1 E01老版本协议  2 E01S新版本协议 3 灵悦智汇协议
 //#define LOAD_MONITOR_ON
+
+#if MCU_TYPE == 030
+	#define UID_ADDR 0x1FFFF7AC
+#elif MCU_TYPE == 103
+	#define UID_ADDR 0x1FFFF7E8
+#endif
+
+
+
 #endif
 

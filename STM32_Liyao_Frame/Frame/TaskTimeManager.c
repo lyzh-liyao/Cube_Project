@@ -61,8 +61,7 @@ void TaskTime_Init(){
 //		TaskTimeLink[i].Alias = -1;
 //		TaskTimeLink[i]._TaskID = -1;
 //	}
-	
-	srand(SysTick->VAL); 
+
 };
 
 /****************************************************
