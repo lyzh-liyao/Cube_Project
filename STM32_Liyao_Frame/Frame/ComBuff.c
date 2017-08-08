@@ -564,6 +564,7 @@ __weak uint8_t  PaddingProtocol_IT(void){
 }
 #endif
 //--------------------------------printf µœ÷-------------------------------------
+/*
 void printch(char ch);
 void printdec(int dec);
 void printflt(double flt);
@@ -613,9 +614,6 @@ void StringFormat(char* target,uint8_t type,const char* fmt,va_list vp){
             {
                 
                 case 'c':
-                    vargch = va_arg(vp, int); 
-                    /*    va_arg(ap, type), if type is narrow type (char, short, float) an error is given in strict ANSI
-                        mode, or a warning otherwise.In non-strict ANSI mode, 'type' is allowed to be any expression. */
                     printch(vargch);
                     break;
                 case 'd':
@@ -625,8 +623,6 @@ void StringFormat(char* target,uint8_t type,const char* fmt,va_list vp){
                     break;
                 case 'f':
                     vargflt = va_arg(vp, double);
-                    /*    va_arg(ap, type), if type is narrow type (char, short, float) an error is given in strict ANSI
-                        mode, or a warning otherwise.In non-strict ANSI mode, 'type' is allowed to be any expression. */
                     printflt(vargflt);
                     break;
                 case 's':
@@ -730,5 +726,5 @@ void printhex(int hex)
         printch((char)(hex%16 - 10 + 'a' ));
     }
 }
-
+*/
 

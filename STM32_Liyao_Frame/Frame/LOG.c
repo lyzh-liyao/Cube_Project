@@ -9,7 +9,7 @@ static void _error(const char* fmt, ...){
 	va_start(ap, fmt);
 	#ifdef LOG_OUT
 		printf("Log->ERROR:"); 
-		mvprintf(fmt, ap);
+		vprintf(fmt, ap);
 	#endif
 	va_end(ap);
 }
@@ -19,7 +19,7 @@ static void _warning(const char* fmt, ...){
 	va_start(ap, fmt);
 	#ifdef LOG_OUT
 		printf("Log->WARNING:"); 
-		mvprintf(fmt, ap);
+		vprintf(fmt, ap);
 	#endif
 	va_end(ap);
 }
@@ -29,7 +29,7 @@ static void _info(const char* fmt, ...){
 	va_start(ap, fmt);
 	#ifdef LOG_OUT
 		printf("Log->INFO:"); 
-		mvprintf(fmt, ap);
+		vprintf(fmt, ap);
 	#endif
 	va_end(ap);
 }

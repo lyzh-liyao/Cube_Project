@@ -7,12 +7,7 @@
   #include "stm32f0xx_hal.h"
 #endif
 #include "Queue.h"   
-#define TRUE 1
-#define FALSE 0
 
-
-#define BSET(offset) (1 << offset)			//offset位置1其余0
-#define BRESET()		 (~(1 << offset))		//offset位置0其余1
 
 /**************************************************** 
 	功能: 	向串口发送数据(阻塞)
@@ -113,9 +108,11 @@ extern uint8_t PaddingProtocol_IT(void);
 
 
 //--------------------------------printf实现-------------------------------------
+/*
 #include <stdarg.h>
 #define mprintf mprintf
 extern void mprintf(const char* fmt, ...);
 extern void mvprintf(const char* fmt,va_list vp);
-#endif
 
+*/
+#endif
