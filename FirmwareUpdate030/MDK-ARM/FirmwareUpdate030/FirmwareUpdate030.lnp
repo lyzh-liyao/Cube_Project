@@ -1,0 +1,22 @@
+--cpu Cortex-M0
+"firmwareupdate030\system_stm32f0xx.o"
+"firmwareupdate030\main.o"
+"firmwareupdate030\stm32f0xx_it.o"
+"firmwareupdate030\gpio.o"
+"firmwareupdate030\usart.o"
+"firmwareupdate030\startup_stm32f030xc.o"
+"firmwareupdate030\stm32f0xx_ll_dma.o"
+"firmwareupdate030\stm32f0xx_ll_usart.o"
+"firmwareupdate030\stm32f0xx_ll_utils.o"
+"firmwareupdate030\stm32f0xx_ll_gpio.o"
+"firmwareupdate030\stm32f0xx_ll_exti.o"
+"firmwareupdate030\stm32f0xx_ll_rcc.o"
+"firmwareupdate030\stm32f0xx_ll_pwr.o"
+"firmwareupdate030\firmwareupdate.o"
+"firmwareupdate030\iap.o"
+"firmwareupdate030\queue.o"
+"firmwareupdate030\log.o"
+--library_type=microlib --strict --scatter "FirmwareUpdate030\FirmwareUpdate030.sct"
+--diag_suppress=L6329 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "FirmwareUpdate030.map" -o FirmwareUpdate030\FirmwareUpdate030.axf
