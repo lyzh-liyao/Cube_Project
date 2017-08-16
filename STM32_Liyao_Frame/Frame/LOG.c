@@ -1,6 +1,5 @@
 #include "LOG.h" 
-#include <stdarg.h>
-#include "ComBuff.h"
+#include <stdarg.h> 
 //------------------------------LOG------------------------------
 Log_T Log = {0};
 

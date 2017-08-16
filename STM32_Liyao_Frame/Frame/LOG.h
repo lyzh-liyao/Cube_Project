@@ -2,7 +2,6 @@
 #define __LOG_H__
 #include <stdint.h>
 #include <stdlib.h>
-#include "FrameConfig.h"
 /*------------------------------LOG------------------------------*/
 typedef struct _Log_T Log_T;
 struct _Log_T{
@@ -29,7 +28,7 @@ extern void Log_Init(void);
 #define CALLOC(len, size) os_calloc(len, size)
 //#define MALLOC(len) malloc(len)
 //#define CALLOC(len, size) malloc(len) 
-#define FREE(point) free(point)
+#define FREE(point) free(point);point = NULL
 typedef struct{
 	char* point;
 	uint16_t len;

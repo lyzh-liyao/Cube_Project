@@ -1,7 +1,6 @@
 #ifndef __QUEUE_H
 #define __QUEUE_H  
 #include <stdint.h>
-#include "FrameConfig.h"
  
 
 //###################################╤сап###################################

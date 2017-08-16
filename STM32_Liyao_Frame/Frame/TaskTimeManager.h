@@ -29,7 +29,7 @@ static void TaskTime_Monitor_Init(void);
 #define TASK_MAX_COUNT 64
 #define TASK_FIRST_DELAY 3//任务初次运行时间延迟
 typedef enum {TASK_INIT, TASK_WAIT,TASK_READY, TASK_SUSPEND, TASK_RECOVER, TASK_REMOVE}TaskState; 
-typedef enum {Real_Mode,Count_Mode}TASK_MODE;//real模式下 任务在跨越了多个周期只运行一次 count模式下跨越多个周期会执行多次 严格执行次数
+typedef enum {Real_Mode,Count_Mode, Single_Mode}TASK_MODE;//real模式下 任务在跨越了多个周期只运行一次 count模式下跨越多个周期会执行多次 严格执行次数 Single模式只执行1次
 //任务信息描述
 typedef struct _TaskTime_T TaskTime_T;
 struct _TaskTime_T{
@@ -41,7 +41,7 @@ struct _TaskTime_T{
 	int16_t 	_TaskCycleCount;//周期计数器
 	int16_t 	TaskCycle;		 	//周期数
 	void(*Run)(void);				 	//执行的函数
-	uint16_t		StoreCount;			//未能按时执行次数
+	int16_t		StoreCount;			//未能按时执行次数
 	uint16_t	RunCount;			 	//执行次数
 	uint16_t	RunElapsed;		 	//耗时 单位us
 	TaskTime_T* _next;				//下一个任务指针

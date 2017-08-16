@@ -1,5 +1,5 @@
 #ifndef __COMBUFF_H__
-#define __COMBUFF_H__  
+#define __COMBUFF_H__
 #include "FrameConfig.h" 
 #if MCU_TYPE == 103
   #include "stm32f1xx_hal.h"

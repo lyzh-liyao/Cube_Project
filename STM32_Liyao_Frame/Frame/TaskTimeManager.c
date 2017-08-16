@@ -39,7 +39,7 @@ int8_t TaskTime_Check_ID(uint8_t id){
 	功能:	定时任务队列初始化
 	作者:	liyao 2015年9月8日14:10:51
 ****************************************************/
-void TaskTime_Init(){ 
+void TaskTime_Init(){
 	TaskTime_Head->_next = TaskTime_Head->_prev = TaskTime_Head;
 	TaskTime_Head->Alias = -1;	 //任务id  
 	TaskTime_Head->_TaskID = -1;	 //索引
@@ -49,6 +49,7 @@ void TaskTime_Init(){
 	TaskTime_Head->_TaskCycleCount = TaskTime_Head->TaskCycle;//首次运行倒计时 
 	TaskTime_Head->RunCount = 0;
 	TaskTime_Head->RunElapsed = 0;
+	TaskTime_Head->StoreCount = 0;
 	#ifdef LOAD_MONITOR_ON
 		TaskTime_Head->_TaskState = TASK_INIT; //任务状态
 		TaskTime_Head->Run = TaskTime_Monitor;//任务函数指针
@@ -61,7 +62,7 @@ void TaskTime_Init(){
 //		TaskTimeLink[i].Alias = -1;
 //		TaskTimeLink[i]._TaskID = -1;
 //	}
-
+	EXTI_IT_ENABLE();
 };
 
 /****************************************************
@@ -90,8 +91,9 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	newTaskTime->Run = Run;//任务函数指针
 	newTaskTime->RunCount = 0;
 	newTaskTime->RunElapsed = 0; 
+	newTaskTime->StoreCount = 0;
 	newTaskTime->_next = NULL;
-	
+	newTaskTime->TaskMode = TaskMode;
 	OSInfo.TaskSize++;
 	OSInfo.TaskFreeSize--; 
  
@@ -135,7 +137,7 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-static int8_t _TaskTime_Remove(uint8_t id){ 
+static int8_t _TaskTime_Remove(uint8_t id){
 	if(TaskTime_Check_ID(id) < 0)
 		return -1;
 	tmpTaskTime = TaskTime_Head->_next;
@@ -241,15 +243,17 @@ void HAL_SYSTICK_Callback(void)
 	#endif 
 	do{
 		switch(tmpTaskTimeH->_TaskState){
-			case TASK_INIT: 
+			case TASK_INIT:
 			case TASK_WAIT:   
+				if(--tmpTaskTimeH->_TaskCycleCount <= 0){
+					tmpTaskTimeH->_TaskState = TASK_READY; //状态置为待执行 
+					tmpTaskTimeH->_TaskCycleCount = tmpTaskTimeH->TaskCycle;//填充计数
+				}
+				break;
 			case TASK_READY:
 				if(--tmpTaskTimeH->_TaskCycleCount <= 0){
+					tmpTaskTimeH->StoreCount++;	//累加未能执行次数
 					tmpTaskTimeH->_TaskCycleCount = tmpTaskTimeH->TaskCycle;//填充计数
-					if(tmpTaskTimeH->_TaskState == TASK_READY) 
-						tmpTaskTimeH->StoreCount++;//累加未能执行次数
-					else
-						tmpTaskTimeH->_TaskState = TASK_READY; //状态置为待执行 
 				}
 				break;
 			case TASK_SUSPEND: 
@@ -294,9 +298,18 @@ void TaskTime_Run(void){
 					TIMER_Tmp = LOAD_TIMX->CNT;
 					COUNTER_ON; 
 				#endif
-				tmpTaskTime->_TaskState = TASK_WAIT; 
-				tmpTaskTime->Run();
-				tmpTaskTime->RunCount++;
+				tmpTaskTime->_TaskState = TASK_WAIT;
+				do{
+					tmpTaskTime->Run();
+					tmpTaskTime->RunCount++;
+				}while(--tmpTaskTime->StoreCount >= 0 && tmpTaskTime->TaskMode == Count_Mode);
+				EXTI_IT_DISABLE();
+				tmpTaskTime->StoreCount = 0;
+				EXTI_IT_ENABLE();
+				if(tmpTaskTime->TaskMode == Single_Mode){
+					_TaskTime_Remove(tmpTaskTime->_TaskID);
+					return;
+				}
 				#ifdef LOAD_MONITOR_ON
 					COUNTER_OFF; 
 					if(TIMER_Bak > 0){
@@ -314,7 +327,7 @@ void TaskTime_Run(void){
 				break;
 			case TASK_REMOVE: 
 				_TaskTime_Remove(tmpTaskTime->_TaskID);
-				break;
+				return;
 			default:
 				break;
 		}

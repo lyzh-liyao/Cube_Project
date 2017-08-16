@@ -426,52 +426,53 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 	#ifdef UART1_DMA_SENDER
 	if(huart == Uart1_DMA_Sender.Uart){
 	  HAL_UART_Transmit_DMA(Uart1_DMA_Sender.Uart, Uart1_DMA_Sender.Data, Uart1_DMA_Sender.Len); 
-		Log.error("huart1 TX DMA error\r\n");
+		Log.error("huart1 TX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	#ifdef UART2_DMA_SENDER
 	if(huart == Uart2_DMA_Sender.Uart){
 	  HAL_UART_Transmit_DMA(Uart2_DMA_Sender.Uart, Uart2_DMA_Sender.Data, Uart2_DMA_Sender.Len); 
-		Log.error("huart2 TX DMA error\r\n");
+		Log.error("huart2 TX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	#ifdef UART3_DMA_SENDER
 	if(huart == Uart3_DMA_Sender.Uart){
 	  HAL_UART_Transmit_DMA(Uart3_DMA_Sender.Uart, Uart3_DMA_Sender.Data, Uart3_DMA_Sender.Len); 
-		Log.error("huart3 TX DMA error\r\n");
+		Log.error("huart3 TX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	#ifdef UART4_DMA_SENDER
 	if(huart == Uart4_DMA_Sender.Uart){
 	  HAL_UART_Transmit_DMA(Uart4_DMA_Sender.Uart, Uart4_DMA_Sender.Data, Uart4_DMA_Sender.Len); 
-		Log.error("huart4 TX DMA error\r\n");
+		Log.error("huart4 TX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	
 	#ifdef UART1_DMA_RECEIVER
 	if(huart == Uart1_DMA_Receiver.Uart){
 		HAL_UART_Receive_DMA(huart, Uart1_DMA_Receiver.Data, UART1_DMA_RECV_SIZE); 
-		Log.error("huart1 RX DMA error\r\n");
+		Log.error("huart1 RX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	#ifdef UART2_DMA_RECEIVER
 	if(huart == Uart2_DMA_Receiver.Uart){
 		HAL_UART_Receive_DMA(huart, Uart2_DMA_Receiver.Data, UART2_DMA_RECV_SIZE);
-		Log.error("huart2 RX DMA error\r\n"); 
+		Log.error("huart2 RX DMA error:0x%X\r\n", huart->ErrorCode); 
 	}
 	#endif
 	#ifdef UART3_DMA_RECEIVER
 	if(huart == Uart3_DMA_Receiver.Uart){
 		HAL_UART_Receive_DMA(huart, Uart3_DMA_Receiver.Data, UART3_DMA_RECV_SIZE);
-		Log.error("huart3 RX DMA error\r\n"); 
+		Log.error("huart3 RX DMA error:0x%X\r\n", huart->ErrorCode); 
 	}
 	#endif
 	#ifdef UART4_DMA_RECEIVER
 	if(huart == Uart4_DMA_Receiver.Uart){
 		HAL_UART_Receive_DMA(huart, Uart4_DMA_Receiver.Data, UART4_DMA_RECV_SIZE); 
-		Log.error("huart4 RX DMA error\r\n");
+		Log.error("huart4 RX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
+	while(1);
 }
 #endif
 //--------------------------------¿ì½Ýµ÷ÓÃ-------------------------------------
@@ -510,19 +511,19 @@ __weak void PaddingProtocol(void){
 	int8_t cnt = 0;
 	uint8_t data[BUFFSIZE] = {0};  
 	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
-    if((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+    while((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
       ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
   #endif
 	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
-		if((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+		while((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
 			ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,data,cnt);  
 	#endif
 	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
-		if((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+		while((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
 			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);  
 	#endif
 	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
-		if((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+		while((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
 			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
 	#endif
 }

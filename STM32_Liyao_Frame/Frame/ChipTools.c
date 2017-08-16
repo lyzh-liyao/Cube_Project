@@ -1,4 +1,3 @@
-#include "FrameConfig.h"
 #include "ChipTools.h"
 #include <stdlib.h>
 #include <string.h>
@@ -21,4 +20,6 @@ void CheckEndian(void)
 	endian_test = { { 'l', '?', '?', 'b' } };
   printf("%c\r\n", ((char)endian_test.l));
 }  
+
+
 
