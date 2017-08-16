@@ -134,7 +134,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -171,9 +170,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>114</LineNumber>
+          <LineNumber>65</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134218250</Address>
+          <Address>134218166</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -182,23 +181,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>D:\LiyaoProject\Cube_Project\STM32_Liyao_Frame\BootloaderFrame\FirmwareUpdate.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\FirmwareUpdate030\D:/LiyaoProject/Cube_Project/STM32_Liyao_Frame/BootloaderFrame/FirmwareUpdate.c\114</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>115</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>D:\LiyaoProject\Cube_Project\STM32_Liyao_Frame\BootloaderFrame\FirmwareUpdate.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\FirmwareUpdate030\D:/LiyaoProject/Cube_Project/STM32_Liyao_Frame/BootloaderFrame/FirmwareUpdate.c\65</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -206,6 +189,11 @@
           <count>0</count>
           <WinNumber>1</WinNumber>
           <ItemText>((USART_TypeDef *) (((uint32_t)0x40000000U) + 0x00004C00))</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>_Firmware_Info1</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
