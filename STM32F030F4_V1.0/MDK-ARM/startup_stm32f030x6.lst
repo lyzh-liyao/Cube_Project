@@ -359,11 +359,11 @@ ARM Macro Assembler    Page 6
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interw
 ork --depend=stm32f030f4_base_v1.0\startup_stm32f030x6.d -ostm32f030f4_base_v1.
-0\startup_stm32f030x6.o -ID:\LiyaoProject\Cube_Project\STM32F030F4_BASE_V1.0\MD
-K-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include -IC:\Keil_v5\ARM\
-PACK\Keil\STM32F0xx_DFP\1.4.0\Device\Include --predefine="__MICROLIB SETA 1" --
-predefine="__UVISION_VERSION SETA 516" --predefine="_RTE_ SETA 1" --predefine="
-STM32F030 SETA 1" --list=startup_stm32f030x6.lst startup_stm32f030x6.s
+0\startup_stm32f030x6.o -ID:\LiyaoProject\Cube_Project\STM32F030F4_V1.0\MDK-ARM
+\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\
+Keil\STM32F0xx_DFP\1.4.0\Device\Include --predefine="__MICROLIB SETA 1" --prede
+fine="__UVISION_VERSION SETA 516" --predefine="_RTE_ SETA 1" --predefine="STM32
+F030 SETA 1" --list=startup_stm32f030x6.lst startup_stm32f030x6.s
 
 
 

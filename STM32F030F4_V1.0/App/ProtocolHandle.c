@@ -1,11 +1,10 @@
 #include "ProtocolHandle.h"
-#include <stdio.h>
 #include "ComBuff.h"
+#include "Protocol.h"
+#include "TaskTimeManager.h"
 
- 
-void HeartBeat_P_Handle(Protocol_Info_T* pi){ 
-	HEARTBEAT_PROTOCOL_T* Heartbeat_P = pi->ParameterList;
-	printf("ÊÕµ½ÐÄÌø:%d\r\n", Heartbeat_P->para1); 
+void Template_Recv_Handle(Protocol_Info_T* pi){
+	Template_Recv_T* data = pi->ParameterList;
+	data->para1 = data->para1;
 }
- 
- 
+
