@@ -138,15 +138,15 @@ void ComBuff_Init(void){
 static int8_t _Write(DMA_Sender_T* uds,uint8_t* data, uint8_t len){ 
   if(uds->OverFlag){//发送未完成则放入缓冲区
     Log.info("DMA BUSY加入缓存\r\n");
-    Queue_Link_Put(uds->DMA_Send_Queue, data, len); 
+    Queue_Link_Push(uds->DMA_Send_Queue, data, len); 
     return 0;
   }
   uint16_t cnt = 0;
   if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
-    Queue_Link_Put(uds->DMA_Send_Queue, data, len); 
+    Queue_Link_Push(uds->DMA_Send_Queue, data, len); 
     uds->Data = MALLOC(cnt); 
     MALLOC_CHECK(uds->Data,"_Write");
-    Queue_Link_Get(uds->DMA_Send_Queue, uds->Data);
+    Queue_Link_Pop(uds->DMA_Send_Queue, uds->Data);
     uds->Len = cnt;
   }else{
     uds->Data = MALLOC(len);
@@ -192,7 +192,7 @@ static int8_t _KeepTransmit(DMA_Sender_T* uds){
   if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
     uds->Data = MALLOC(cnt); 
     MALLOC_CHECK(uds->Data,"_Write");
-    Queue_Link_Get(uds->DMA_Send_Queue, uds->Data);
+    Queue_Link_Pop(uds->DMA_Send_Queue, uds->Data);
     uds->Len = cnt; 
     HAL_UART_Transmit_DMA(uds->Uart, uds->Data, uds->Len);
   } 
@@ -307,7 +307,7 @@ __weak int fputc(int ch,FILE *f)
 #ifdef LL_LIB
 	LL_USART_TransmitData8(DEBUG_USART,ch);
 #else
-		while( HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 100) == HAL_BUSY);
+		 HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 10);
 #endif
 //  
 	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender,(uint8_t*)&ch, 1);
@@ -472,7 +472,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 		Log.error("huart4 RX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
-	while(1);
+//	while(1);
 }
 #endif
 //--------------------------------快捷调用-------------------------------------

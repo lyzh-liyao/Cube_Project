@@ -1,8 +1,10 @@
 #ifndef __QUEUE_H
 #define __QUEUE_H  
 #include <stdint.h>
- 
-
+//###################################中断禁止接口###################################
+#include "TaskTimeManager.h"
+#define QUEUE_LOCK 			EXTI_IT_DISABLE()
+#define QUEUE_UNLOCK 		EXTI_IT_ENABLE()
 //###################################队列###################################
 #define QUEUE_MAXNUM 10
 
@@ -29,8 +31,8 @@ typedef struct{
 extern QUEUE_T* Queue_Init(void* _array,uint8_t _single_size ,uint16_t _count);
 /*extern int8_t queue_put(QUEUE_T* , int32_t );
 extern int8_t queue_get(QUEUE_T* , int32_t* );*/
-extern int8_t Queue_Put(QUEUE_T* queue,void* _data);
-extern int8_t Queue_Get(QUEUE_T* queue,void* _data);
+extern int8_t Queue_Push(QUEUE_T* queue,void* _data);
+extern int8_t Queue_Pop(QUEUE_T* queue,void* _data);
 extern uint16_t Queue_Size(QUEUE_T* queue);
 extern uint16_t Queue_Empty_size(QUEUE_T* queue);
 extern void Queue_Free(QUEUE_T* queue);
@@ -55,9 +57,9 @@ typedef struct{
 }Queue_Head_T;
 
 extern Queue_Head_T* Queue_Link_Init(uint16_t Size);
-extern int8_t Queue_Link_Put(Queue_Head_T* Queue_Head,void* Data, uint16_t Len);
+extern int8_t Queue_Link_Push(Queue_Head_T* Queue_Head,void* Data, uint16_t Len);
 extern uint16_t Queue_Link_OutSize(Queue_Head_T* Queue_Head);
-extern int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data);
+extern int8_t Queue_Link_Pop(Queue_Head_T* Queue_Head, void* Data);
 extern uint8_t Queue_Link_Update(Queue_Head_T* Queue_Head,void* Data, uint16_t Len, Compare cmp);
 extern void Queue_Link_Free(Queue_Head_T* Queue_Head);
 

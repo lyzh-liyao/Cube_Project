@@ -16,9 +16,11 @@ static TaskTime_T *tmpTaskTime,*prevTaskTime,*nextTaskTime;
 	功能:	
 	作者:	liyao 2015年9月8日14:10:51
 ****************************************************/
-int8_t TaskTime_Check_ID(uint8_t id){
-	if(id > TASK_MAX_COUNT )
+int8_t TaskTime_Check_ID(int8_t id){
+	if(id > TASK_MAX_COUNT ){
+		Log.error("TaskTime_Check_ID错误\r\n");
 		return -1;
+	}
 	return 0;
 };
 
@@ -62,9 +64,27 @@ void TaskTime_Init(){
 //		TaskTimeLink[i].Alias = -1;
 //		TaskTimeLink[i]._TaskID = -1;
 //	}
-	EXTI_IT_ENABLE();
+//	EXTI_IT_ENABLE();
 };
 
+/****************************************************
+	函数名:	_TaskTime_AllocID
+	功能:	分配任务ID
+	作者:	liyao 2017年9月12日
+****************************************************/
+int8_t _TaskTime_AllocID(void){
+	static int8_t seq = 0;
+	Realloc:	
+	seq = (seq+1)%TASK_MAX_COUNT;
+	tmpTaskTime = TaskTime_Head->_next;
+	while(tmpTaskTime != TaskTime_Head){
+		if(tmpTaskTime->_TaskID  == seq){
+			goto Realloc;
+		}
+		tmpTaskTime = tmpTaskTime->_next;
+	} 
+	return seq;
+}
 /****************************************************
 	函数名:	TaskTime_Add
 	功能:	添加定时任务
@@ -74,16 +94,17 @@ void TaskTime_Init(){
 ****************************************************/
 int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE TaskMode){
 	TaskTime_T* newTaskTime = NULL;
-	static uint16_t seq = 0;
-	if(OSInfo.TaskSize == TASK_MAX_COUNT)//任务满
+	if(OSInfo.TaskSize == TASK_MAX_COUNT){//任务满
+		printf("任务满\r\n");
 		return -1; 
+	}
 	//for(i = 0; i<TASK_MAX_COUNT; i++){//寻找任务栈空位
 	//	if(TaskTimeLink[i]._TaskID == -1){
 	newTaskTime = MALLOC(sizeof(TaskTime_T));
 	MALLOC_CHECK(newTaskTime,"TaskTime_Add");
 	//newTaskTime = &TaskTimeLink[i];
 	newTaskTime->Alias = alias;			 //任务id  
-	newTaskTime->_TaskID = seq++;			 //索引
+	newTaskTime->_TaskID = _TaskTime_AllocID();			 //索引
 	newTaskTime->Priority		= alias;//优先级 Priority
 	newTaskTime->_TaskState = TASK_INIT;		 //任务状态
 	newTaskTime->TaskCycle = TaskCycle;//运行周期
@@ -100,19 +121,23 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
  
 	//首个任务
 	if(TaskTime_Head->_next == TaskTime_Head){
+		SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
 		TaskTime_Head->_next = TaskTime_Head->_prev = newTaskTime; 
 		  newTaskTime->_next =   newTaskTime->_prev = TaskTime_Head;
+		SYSTICK_IT_ENABLE(); 
 	}else{//已有任务 
 		tmpTaskTime = TaskTime_Head->_next;
 		while(tmpTaskTime != TaskTime_Head){//新任务放入链表
 			if(tmpTaskTime->Priority <= newTaskTime->Priority){//当前任务优先级比新任务优先级高则 
 				tmpTaskTime = tmpTaskTime->_next; 
 				if(tmpTaskTime == TaskTime_Head){//循环到最后依然没有匹配到
+					SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
 					prevTaskTime = TaskTime_Head->_prev;
 					prevTaskTime->_next = newTaskTime;			//	A_Next = N 
 					tmpTaskTime->_prev = newTaskTime;				//	B_Prev = N
 					newTaskTime->_prev = prevTaskTime;			//	N_Prev = A
 					newTaskTime->_next = tmpTaskTime;				//	N_Next = B
+					SYSTICK_IT_ENABLE(); 
 				}
 				continue;
 			}else{//当前任务优先级比新任务优先级低或相等 	A_Next = B    B_Prev = A
@@ -137,9 +162,10 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-static int8_t _TaskTime_Remove(uint8_t id){
-	if(TaskTime_Check_ID(id) < 0)
+static int8_t _TaskTime_Remove(int8_t id){
+	if(TaskTime_Check_ID(id) < 0){
 		return -1;
+	}
 	tmpTaskTime = TaskTime_Head->_next;
 	while(tmpTaskTime != TaskTime_Head){
 		if(tmpTaskTime->_TaskID  == id){
@@ -154,7 +180,7 @@ static int8_t _TaskTime_Remove(uint8_t id){
 			FREE(tmpTaskTime);
 //			memset(tmpTaskTime, 0, sizeof(TaskTime_T));
 //			tmpTaskTime->Alias = -1;
-//			tmpTaskTime->_TaskID = -1; 
+//			tmpTaskTime->_TaskID = -1;
 			break;
 		}
 		tmpTaskTime = tmpTaskTime->_next;
@@ -169,7 +195,7 @@ static int8_t _TaskTime_Remove(uint8_t id){
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-int8_t TaskTime_Remove(uint8_t id){ 
+int8_t TaskTime_Remove(int8_t id){ 
 	TaskTime_T* Cur_Task = NULL;
 	if(TaskTime_Check_ID(id) < 0)
 		return -1;
@@ -192,7 +218,7 @@ int8_t TaskTime_Remove(uint8_t id){
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-int8_t TaskTime_SuspendTask(uint8_t id){ 
+int8_t TaskTime_SuspendTask(int8_t id){ 
 	TaskTime_T* Cur_Task = NULL;
 	if(TaskTime_Check_ID(id) < 0)
 		return -1;
@@ -214,7 +240,7 @@ int8_t TaskTime_SuspendTask(uint8_t id){
 	返回值:	>0：成功 -1：失败 
 	作者:		liyao 2016年8月5日11:55:36
 ****************************************************/
-int8_t TaskTime_RecoverTask(uint8_t id){
+int8_t TaskTime_RecoverTask(int8_t id){
 	TaskTime_T* Cur_Task = NULL; 
 	if(TaskTime_Check_ID(id) < 0)
 		return -1;

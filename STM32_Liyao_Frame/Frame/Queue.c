@@ -8,7 +8,6 @@
  */
 
 //###################################队列相关函数###################################
-
 QUEUE_T queue_list[QUEUE_MAXNUM] = {0}; 
 uint8_t queue_locd = 0;
 /****************************************************
@@ -76,42 +75,41 @@ QUEUE_T* Queue_Init(void* _array,uint8_t _single_size ,uint16_t _count){
 		queue->num --;
 		return 0;
 }*/
-#define QUEUE_LOCK do{if(queue->locked == 1) return -1;else queue->locked = 1;}while(0);
-#define QUEUE_UNLOCK do{queue->locked = 0;}while(0);
+
 /****************************************************
-	函数名:	queue_put 
+	函数名:	Queue_Push 
 	功能:	数据插入到队列
 	参数:	队列句柄，数据
 	作者:	liyao 2015年9月8日14:10:51
 ****************************************************/
-int8_t Queue_Put(QUEUE_T* queue,void* _data){
+int8_t Queue_Push(QUEUE_T* queue,void* _data){
 		if(queue->full_flag == 1)  
 			return -1;
-		//QUEUE_LOCK;
+		QUEUE_LOCK;
 		memcpy((char*)queue->data + (queue->start * queue->single_size),_data,queue->single_size);
 		queue->start = ((++queue->start) % queue->count);
 		if(queue->start == queue->end)
 			queue->full_flag = 1;
 		//queue->num ++;
-		//QUEUE_UNLOCK
+		QUEUE_UNLOCK;
 		return 0;
 }
 
 /****************************************************
-	函数名:	queue_get
+	函数名:	Queue_Pop
 	功能:	从队列取出数据
 	参数:	队列句柄，数据容器（回填）
 	作者:	liyao 2015年9月8日14:10:51
 ****************************************************/
-int8_t Queue_Get(QUEUE_T* queue, void* _data){
+int8_t Queue_Pop(QUEUE_T* queue, void* _data){
 		if(queue->full_flag == 0 && queue->start == queue->end) 
 			return -1;
-		//QUEUE_LOCK;
+		QUEUE_LOCK;
 		memcpy(_data,(char*)queue->data + (queue->end * queue->single_size),queue->single_size);
 		queue->end = ((++queue->end) % queue->count);
 		queue->full_flag = 0;
-		//queue->num --;
-		//QUEUE_UNLOCK;
+		queue->num --;
+		QUEUE_UNLOCK;
 		return 0;
 }
 
@@ -177,11 +175,11 @@ Queue_Head_T* Queue_Link_Init(uint16_t Size){
 }
 
 /****************************************************
-	函数名:Queue_Link_Put
+	函数名:Queue_Link_Push
 	功能:	向队列中添加一个元素
 	作者:	liyao 2016年10月26日
 ****************************************************/
-int8_t Queue_Link_Put(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
+int8_t Queue_Link_Push(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 	Queue_Pack_T* Queue_Pack = NULL;
 	if(Queue_Head->Size > 0 && Queue_Head->Count == Queue_Head->Size){
 		Log.error("队列满\r\n");
@@ -197,6 +195,7 @@ int8_t Queue_Link_Put(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 	Queue_Pack->Len	 = Len;
 	memcpy(Queue_Pack->Data, Data, Len); 
 	//加入链表
+	QUEUE_LOCK;
 	if(Queue_Head->Out == NULL){//首次加入
 		Queue_Head->Out = Queue_Head->In = Queue_Pack;
 	}else{//已有数据加入 
@@ -204,6 +203,7 @@ int8_t Queue_Link_Put(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 		Queue_Head->In = Queue_Pack;
 	}
 	Queue_Head->Count++;
+	QUEUE_UNLOCK;
 	return 0;
 }
 
@@ -219,15 +219,16 @@ uint16_t Queue_Link_OutSize(Queue_Head_T* Queue_Head){
 }
 
 /****************************************************
-	函数名:Queue_Link_GetData
+	函数名:Queue_Link_Pop
 	功能:	以数组的形式获取数据
 	作者:	liyao 2016年10月26日
 ****************************************************/
-int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data){ 
+int8_t Queue_Link_Pop(Queue_Head_T* Queue_Head, void* Data){ 
 	Queue_Pack_T* CurPack = Queue_Head->Out;
 	if(Queue_Head->Out == NULL)
 		return -1;
 	//为回填指针赋值 
+	QUEUE_LOCK;
 	memcpy(Data, CurPack->Data, CurPack->Len);
 	//移动队列Out指针
 	Queue_Head->Out = CurPack->Next;
@@ -235,6 +236,7 @@ int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data){
 	FREE(CurPack->Data);
 	FREE(CurPack);
 	Queue_Head->Count--;
+	QUEUE_UNLOCK;
 	return 0;
 }
 
@@ -246,13 +248,16 @@ int8_t Queue_Link_Get(Queue_Head_T* Queue_Head, void* Data){
 uint8_t Queue_Link_Update(Queue_Head_T* Queue_Head,void* Data, uint16_t Len, Compare cmp){
 	Queue_Pack_T* tmp_pack = Queue_Head->Out;
 	while(tmp_pack != NULL){
+		QUEUE_LOCK;
 		if(cmp(tmp_pack->Data, tmp_pack->Len)){
 			REALLOC(tmp_pack->Data, Len); 
 			MALLOC_CHECK(tmp_pack->Data, "Queue_Link_Update"); 
 			memcpy(tmp_pack->Data, Data, Len);
+			QUEUE_UNLOCK;
 			return 1;
 		}
 		tmp_pack = tmp_pack->Next;
+		QUEUE_UNLOCK;
 	}
 	return 0;
 }
@@ -266,10 +271,12 @@ void Queue_Link_Free(Queue_Head_T* Queue){
 	Queue_Pack_T* cur = Queue->Out;
 	Queue_Pack_T* next = NULL;
 	while(cur != NULL){
+		QUEUE_LOCK;
 		next = cur->Next;
 		FREE(cur->Data);
 		FREE(cur);
 		cur = next;
+		QUEUE_UNLOCK;
 	}
 	if(Queue != NULL)
 		FREE(Queue);

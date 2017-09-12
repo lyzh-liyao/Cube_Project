@@ -1,4 +1,5 @@
 #include "LOG.h" 
+#include "FrameConfig.h"
 #include <stdarg.h> 
 //------------------------------LOG------------------------------
 Log_T Log = {0};

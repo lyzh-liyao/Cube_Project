@@ -6,9 +6,12 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BSET(offset) (1 << offset)			//offset位置1其余0
-#define BRESET()		 (~(1 << offset))		//offset位置0其余1
+#define BSET(offset) 	 				(1 << offset)			//offset位置1其余0
+#define BRESET(offset) 				(~(1 << offset))		//offset位置0其余1
+#define BitSet(Data, index) 	((Data) | BSET(index))
+#define BitReSet(Data, index) ((Data) &  BRESET(index))
 
+#define BitGet(Data, offset)				(((Data) >> (offset)) & 0x01)
 
 #define VECTOR_SIZE 48*4
 #define FLASH_APP_ADDR		0x08001000  	//第一个应用程序起始地址(存放在FLASH)

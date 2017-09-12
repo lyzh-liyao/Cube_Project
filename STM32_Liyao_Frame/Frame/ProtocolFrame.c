@@ -66,10 +66,10 @@ static void _clean_recv_buf(Protocol_Resolver_T* pr){
 ****************************************************/
 static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 	Protocol_Info_T pi;
-	while(Queue_Link_Get(pr->Protocol_Queue,&pi) == 0){ 
+	while(Queue_Link_Pop(pr->Protocol_Queue,&pi) == 0){ 
 		if(pi.ProtocolDesc->Check != NULL){
 			if(pi.ProtocolDesc->Check(&pi) < 0){
-				Log.error("协议校验不通过\r\n");
+				Log.waring("协议校验不通过\r\n");
 				break;
 			}
 		}
@@ -78,7 +78,7 @@ static void _Fetch_Protocol(Protocol_Resolver_T* pr){
 		if(pi.ProtocolDesc->Handle != NULL){
 			pi.ProtocolDesc->Handle(&pi);
 		}else{
-			Log.error("收到协议但是无处理函数\r\n");
+			Log.waring("收到协议但是无处理函数\r\n");
 		} 
 		FREE(pi.ParameterList);
 	}
@@ -463,7 +463,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 							Log.error("现有协议库无匹配当前协议\r\n");
 							return EQUALS_ERR_P;
 						}else{
-							Queue_Link_Put(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
+							Queue_Link_Push(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
               //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
 							_clean_recv_buf(pr); 
 						}

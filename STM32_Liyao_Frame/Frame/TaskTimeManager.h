@@ -26,7 +26,7 @@ static void TaskTime_Monitor_Init(void);
 #define SYSTICK_IT_ENABLE()  SysTick->CTRL |= (1ul << SysTick_CTRL_TICKINT_Pos);
 
 #define TimeCycle(s,ms) (s*1000 + ms)
-#define TASK_MAX_COUNT 64
+#define TASK_MAX_COUNT 100
 #define TASK_FIRST_DELAY 3//任务初次运行时间延迟
 typedef enum {TASK_INIT, TASK_WAIT,TASK_READY, TASK_SUSPEND, TASK_RECOVER, TASK_REMOVE}TaskState; 
 typedef enum {Real_Mode,Count_Mode, Single_Mode}TASK_MODE;//real模式下 任务在跨越了多个周期只运行一次 count模式下跨越多个周期会执行多次 严格执行次数 Single模式只执行1次
@@ -61,9 +61,9 @@ extern void TaskTime_Run(void);
 extern void BaseClock_Init(void);
 extern void TaskTime_Init(void);
 extern int8_t TaskTime_Add(int8_t alias, uint16_t TaskCycle, void(*Run)(void), TASK_MODE TaskMode);
-extern int8_t TaskTime_Remove(uint8_t id);
-extern int8_t TaskTime_SuspendTask(uint8_t id);
-extern int8_t TaskTime_RecoverTask(uint8_t id);  
+extern int8_t TaskTime_Remove(int8_t id);
+extern int8_t TaskTime_SuspendTask(int8_t id);
+extern int8_t TaskTime_RecoverTask(int8_t id);  
 extern void HAL_SYSTICK_Callback(void);
 extern void DelayUS(int32_t);
 extern void DelayMS(int32_t);
