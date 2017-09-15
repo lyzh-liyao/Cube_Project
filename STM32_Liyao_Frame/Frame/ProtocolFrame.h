@@ -21,6 +21,8 @@ FE->FE 7E		*/
 #define PULL_SRC_MODULE(val)					((val  >> SRC_MODULE_Pos) & 0xFF)
 #define PULL_TARGET_MODULE(val)				((val >> TARGET_MODULE_Pos) & 0xFF)
 #define PULL_ACTION_MODULE(val)				((val >> ACTION_MODULE_Pos) & 0xFF)
+//变长协议
+#define ELONGATE_SIZE 0xFF 
 
 /*协议类型  发送   接收  转发*/
 typedef enum{ SEND, RECEIVE, TRANSPOND }PROTOCOL_TYPE;

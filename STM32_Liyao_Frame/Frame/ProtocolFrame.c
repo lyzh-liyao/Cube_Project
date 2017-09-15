@@ -446,7 +446,7 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 							Protocol_Desc_T* pdt = Cur_Node->Data;
 							uint32_t tmpModuleAction = TO_MODULE_ACTION(pr->pi.SrcModule, pr->pi.TargetModule, pr->pi.Action);
 							if( (tmpModuleAction == pdt->ModuleAction || TO_BROADCAST_MODULE_ACTION(tmpModuleAction) == TO_BROADCAST_MODULE_ACTION(pdt->ModuleAction))//目标模块匹配或者广播匹配
-								&& pr->pi.DataLen == pdt->ProtocolSize)//帧长度匹配 
+								&& (pr->pi.DataLen == pdt->ProtocolSize || pdt->ProtocolSize == ELONGATE_SIZE))//帧长度匹配 
 							{
 								pr->pi.ParameterList = MALLOC(pr->pi.DataLen);
 								MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
