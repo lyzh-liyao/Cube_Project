@@ -188,12 +188,18 @@ int8_t Queue_Link_Push(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 	//分配Queue_Pack_T
 	Queue_Pack = MALLOC(sizeof(Queue_Pack_T)); 
 	MALLOC_CHECK(Queue_Pack, "Queue_Link_Put1"); 
+	if(Queue_Pack == NULL)
+		return -100;
 	Queue_Pack->Data = CALLOC(Len, sizeof(uint8_t));
 	MALLOC_CHECK(Queue_Pack->Data, "Queue_Link_Put2"); 
+	if(Queue_Pack->Data == NULL)
+		return -100;
 	//赋值Queue_Pack_T 
 	Queue_Pack->Next = NULL;
 	Queue_Pack->Len	 = Len;
-	memcpy(Queue_Pack->Data, Data, Len); 
+//	if(Queue_Pack->Data == NULL)
+//		while(1)Queue_Head->Size
+	memcpy(Queue_Pack->Data, Data, Len);
 	//加入链表
 	QUEUE_LOCK;
 	if(Queue_Head->Out == NULL){//首次加入

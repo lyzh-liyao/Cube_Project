@@ -7,35 +7,47 @@
 //###################################发送协议类###################################
 
 /****************************************************
-	结构体名:	Template_Send_T
-	功能: 发送协议示例
-	作者：liyao 2015年9月8日14:10:51
+	结构体名:	Ptcl_Ack_T
+	功能: 应答协议实体
+	作者：liyao 2017年10月13日
 ****************************************************/
 typedef struct{
-	uint8_t para1;//接收序号
-}Template_Send_T;
+	uint8_t Seq;
+}__attribute((packed))Ptcl_Ack_T;
 
+/****************************************************
+	结构体名:	OP_Ack_T
+	功能: 操作应答协议实体
+	作者：liyao 2017年10月13日
+****************************************************/
+typedef struct{
+	uint8_t Action;
+	uint8_t Seq;
+	uint8_t Result;
+}__attribute((packed))OP_Ack_T;
 //###################################接收协议类###################################
 /****************************************************
-	结构体名:	Template_Recv_T
-	功能: 接收协议示例
-	作者：liyao 2015年9月8日14:10:51
+	结构体名:	Super_Ack_T
+	功能: 上位机应答协议实体
+	作者：liyao 2017年10月13日
 ****************************************************/
-typedef struct{
-	uint8_t para1;//接收序号
-}Template_Recv_T;
+typedef struct{	
+	uint8_t Action;
+	uint8_t Seq;
+	uint8_t Reserved;
+}__attribute((packed))Super_Ack_T;
 
 
-//----------------------联合体--------------------------------
 /*模块编号*/
-#define TEST1_MODULE  0x01
-#define TEST2_MODULE  0x02 
+#define REMOTE_MODULE  0x01
+#define THIS_MODULE  	 0x02 
 
 /*协议目标板及动作*/
 //发送协议
-#define  SEND_TYPE    TO_MODULE_ACTION(TEST1_MODULE, TEST2_MODULE, 0x01)
+#define  PTCL_ACK    		TO_MODULE_ACTION(THIS_MODULE, REMOTE_MODULE, 0xF0)	//协议应答
+#define  OP_ACK    			TO_MODULE_ACTION(THIS_MODULE, REMOTE_MODULE, 0xF1)	//操作应答
 //接收协议
-#define  RECV_TYPE		TO_MODULE_ACTION(TEST2_MODULE, TEST1_MODULE, 0x01) //ID获取
+#define  SUPER_ACK    	TO_MODULE_ACTION(REMOTE_MODULE, THIS_MODULE, 0xF0)		//上位机应答
 
 extern void Protocol_Init(void);
 

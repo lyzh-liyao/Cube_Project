@@ -42,6 +42,11 @@ List_Head_T* Transpond_Desc_P = NULL;
 	Protocol_Resolver_T _ProtocolResolver_4;
 	Protocol_Resolver_T* ProtocolResolver_4 = &_ProtocolResolver_4;
 #endif
+#if PROTOCOL_RESOLVER_5 || PROTOCOL_RESOLVER_IT_5
+	#define RESOLVER_5_RPQUEUE_SIZE		30 //接收协议缓冲区（存储多条协议） 
+	Protocol_Resolver_T _ProtocolResolver_5;
+	Protocol_Resolver_T* ProtocolResolver_5 = &_ProtocolResolver_5;
+#endif
 //-----------------------------------------------------  
 //###################################对内函数区###################################
 /****************************************************
@@ -181,7 +186,7 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_1->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_1->Fetch_Protocol = _Fetch_Protocol;
 	#if PROTOCOL_RESOLVER_IT_1
-		SET_BIT(USART1->CR1, USART_CR1_RXNEIE);
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
 	#endif
 #endif  
 
@@ -191,7 +196,7 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_2->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_2->Fetch_Protocol = _Fetch_Protocol;
 	#if PROTOCOL_RESOLVER_IT_2
-		SET_BIT(USART2->CR1, USART_CR1_RXNEIE);
+	__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 	#endif
 #endif  
 	
@@ -201,7 +206,7 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_3->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_3->Fetch_Protocol = _Fetch_Protocol;
 	#if PROTOCOL_RESOLVER_IT_3
-		SET_BIT(USART3->CR1, USART_CR1_RXNEIE);
+	__HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
 	#endif
 #endif 
 	
@@ -211,13 +216,23 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_4->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_4->Fetch_Protocol = _Fetch_Protocol;
 	#if PROTOCOL_RESOLVER_IT_4
-		SET_BIT(USART4->CR1, USART_CR1_RXNEIE);
+	__HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
+	#endif	
+#endif
+	
+#if PROTOCOL_RESOLVER_5 || PROTOCOL_RESOLVER_IT_5
+//	ProtocolResolver_5->Protocol_Queue = Queue_Init( _UART5_Protocol_QueueBuf,sizeof(Protocol_Info_T), RESOLVER_5_RPQUEUE_SIZE);
+	ProtocolResolver_5->Protocol_Queue = Queue_Link_Init(RESOLVER_5_RPQUEUE_SIZE); 
+	ProtocolResolver_5->Protocol_Put = _Protocol_Put;
+	ProtocolResolver_5->Fetch_Protocol = _Fetch_Protocol;
+	#if PROTOCOL_RESOLVER_IT_5
+	__HAL_UART_ENABLE_IT(&huart5, UART_IT_RXNE);
 	#endif	
 #endif
 
 #ifdef __TASKTIMEMANAGER_H__
 	/*-----------协议执行任务-----------------*/
-	TaskTime_Add(TaskID++, TimeCycle(0,30), FetchProtocols, Real_Mode);
+	TaskTime_Add(TaskID++, TimeCycle(0,10), FetchProtocols, Real_Mode);
 #endif
 }
 
@@ -301,6 +316,8 @@ void Protocol_Send(uint32_t ModuleAction, void* Data,uint8_t Len){
 	
 	uint8_t* data = MALLOC(pi.AllLen * 2);
 	MALLOC_CHECK(data, "Protocol_Send"); 
+	if(data == NULL)
+		return;
 	if((cnt = Protocol_Serialization(&pi, data, pi.AllLen * 2)) == -1)
 		Log.error("Protocol_Send序列化失败\r\n");
 	pi.ProtocolDesc->Send(data, cnt);
@@ -342,6 +359,9 @@ void FetchProtocols(void)
 	#if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 		ProtocolResolver_4->Fetch_Protocol(ProtocolResolver_4);
 	#endif
+	#if PROTOCOL_RESOLVER_5 || PROTOCOL_RESOLVER_IT_5
+		ProtocolResolver_5->Fetch_Protocol(ProtocolResolver_5);
+	#endif
 }
 
 //帧头	帧类型	源模块	目标模块	历史数据编号	数据长度	数据	校验和	帧尾
@@ -350,6 +370,9 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 	List_Node_T* Cur_Node = Recv_Desc_P->Head;
 	for(uint8_t i = 0; i < len; i++){
 		data = datas[i];
+#ifdef COMBUFF_OUT
+		printf("%.2X", data);
+#endif
     if(pr->pi.Head != 0xFD && data != 0xFD)
       continue;
 		if(pr->pi.Head == 0xFD && data == 0xFD){ //协议被切断抛弃
@@ -445,9 +468,10 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 						while(Cur_Node != NULL){
 							Protocol_Desc_T* pdt = Cur_Node->Data;
 							uint32_t tmpModuleAction = TO_MODULE_ACTION(pr->pi.SrcModule, pr->pi.TargetModule, pr->pi.Action);
-							if( (tmpModuleAction == pdt->ModuleAction || TO_BROADCAST_MODULE_ACTION(tmpModuleAction) == TO_BROADCAST_MODULE_ACTION(pdt->ModuleAction))//目标模块匹配或者广播匹配
+							if( (tmpModuleAction == pdt->ModuleAction || tmpModuleAction == TO_BROADCAST_MODULE_ACTION(pdt->ModuleAction))//目标模块匹配或者广播匹配
 								&& (pr->pi.DataLen == pdt->ProtocolSize || pdt->ProtocolSize == ELONGATE_SIZE))//帧长度匹配 
 							{
+//								printf("%X, %X, %X, %X, %X, ",tmpModuleAction, pdt->ModuleAction, );
 								pr->pi.ParameterList = MALLOC(pr->pi.DataLen);
 								MALLOC_CHECK(pr->pi.ParameterList, "_Protocol_Put");
 								memcpy(pr->pi.ParameterList, pr->ParaData, pr->pi.DataLen);
@@ -463,7 +487,8 @@ static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){
 							Log.error("现有协议库无匹配当前协议\r\n");
 							return EQUALS_ERR_P;
 						}else{
-							Queue_Link_Push(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T));//将协议信息放入协议缓冲队列  
+							if(Queue_Link_Push(pr->Protocol_Queue, &pr->pi, sizeof(Protocol_Info_T)) < 0)//将协议信息放入协议缓冲队列  
+								FREE(pr->pi.ParameterList); 
               //ProtocolResolver_1->Fetch_Protocol(ProtocolResolver_1);
 							_clean_recv_buf(pr); 
 						}

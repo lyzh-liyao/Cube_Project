@@ -17,7 +17,6 @@
 					USART_SendData(USARTx,data);\
 				}
 
-#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
 //发送者结构体
 typedef struct _DMA_Sender_T DMA_Sender_T;
 struct _DMA_Sender_T{
@@ -32,8 +31,6 @@ struct _DMA_Sender_T{
 	int8_t (*Write)(DMA_Sender_T* Uds, uint8_t *Data, uint8_t Len);
   int8_t (*KeepTransmit)(DMA_Sender_T* uds);
 };
-#endif
-#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
 //接收者结构体
 typedef struct _DMA_Receiver_T DMA_Receiver_T;
 struct _DMA_Receiver_T{
@@ -49,7 +46,6 @@ struct _DMA_Receiver_T{
 	int16_t (*Read)(DMA_Receiver_T* udr, uint8_t *data, uint8_t len);
 	int16_t (*Lseek)(DMA_Receiver_T* udr, int16_t offset);
 };
-#endif
 /*************串口接收者*************/	
 #ifdef UART1_DMA_RECEIVER				
 	#define UART1_DMA_RECV_SIZE UART1_DMA_RECEIVER 
@@ -70,6 +66,11 @@ struct _DMA_Receiver_T{
 	#define UART4_DMA_RECV_SIZE UART4_DMA_RECEIVER 
 	extern DMA_Receiver_T Uart4_DMA_Receiver;
 #endif
+
+#ifdef UART5_DMA_RECEIVER				
+	#define UART5_DMA_RECV_SIZE UART5_DMA_RECEIVER 
+	extern DMA_Receiver_T Uart5_DMA_Receiver;
+#endif
 /*************串口发送者*************/	
 #ifdef UART1_DMA_SENDER		
 	//#define UART1_DMA_SEND_SIZE 100 
@@ -89,6 +90,11 @@ struct _DMA_Receiver_T{
 #ifdef UART4_DMA_SENDER		
 	//#define UART4_DMA_SEND_SIZE 100 
 	extern DMA_Sender_T Uart4_DMA_Sender; 
+#endif
+
+#ifdef UART5_DMA_SENDER		
+	//#define UART5_DMA_SEND_SIZE 100 
+	extern DMA_Sender_T Uart5_DMA_Sender; 
 #endif
 
 extern QUEUE_T* Uart_Tx_Queue;

@@ -36,14 +36,20 @@
 #ifdef UART4_DMA_RECEIVER 
 	DMA_Receiver_T Uart4_DMA_Receiver = {0}; 
 #endif 
+#ifdef UART5_DMA_SENDER 
+	DMA_Sender_T Uart5_DMA_Sender = {0}; 
+#endif 
+#ifdef UART5_DMA_RECEIVER 
+	DMA_Receiver_T Uart5_DMA_Receiver = {0};  
+#endif 
 //--------------------------内部函数声明-----------------------------
-#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER
 static int8_t _ReadByte(DMA_Receiver_T* udr,uint8_t* data);
 static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_t len);
 static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len); 
 #endif
 
-#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER || UART5_DMA_SENDER
 static int8_t _Write(DMA_Sender_T* uds, uint8_t *data, uint8_t len);
 static int8_t _WriteByte(DMA_Sender_T* uds,uint8_t data);
 static int8_t _KeepTransmit(DMA_Sender_T* uds);
@@ -65,7 +71,7 @@ void DMA_Sender_Init(DMA_Sender_T* Uart_DMA_Sender, UART_HandleTypeDef* huart){
 }
 #endif
 
-#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER
 /****************************************************
 	函数名:	DMA_Receiver_Init
 	功能:		初始化接收者
@@ -89,45 +95,8 @@ void DMA_Receiver_Init(DMA_Receiver_T* Uart_DMA_Receiver, UART_HandleTypeDef* hu
 }
 #endif
 
-/****************************************************
-	函数名:	ComBuff_Init
-	功能:		初始化全部通信缓冲区
-	作者:		liyao 2016年4月4日22:02:12 
-****************************************************/
-void ComBuff_Init(void){
-//UART1 初始化
-#ifdef UART1_DMA_SENDER
-  DMA_Sender_Init(&Uart1_DMA_Sender, &huart1);
-#endif  
-#ifdef UART1_DMA_RECEIVER
-  DMA_Receiver_Init(&Uart1_DMA_Receiver, &huart1, UART1_DMA_RECV_SIZE); 
-#endif  
-#ifdef UART2_DMA_SENDER
-  DMA_Sender_Init(&Uart2_DMA_Sender, &huart2);
-#endif  
-#ifdef UART2_DMA_RECEIVER
-  DMA_Receiver_Init(&Uart2_DMA_Receiver, &huart2, UART2_DMA_RECV_SIZE); 
-#endif 
-#ifdef UART3_DMA_SENDER
-  DMA_Sender_Init(&Uart3_DMA_Sender, &huart3);
-#endif  
-#ifdef UART3_DMA_RECEIVER
-  DMA_Receiver_Init(&Uart3_DMA_Receiver, &huart3, UART3_DMA_RECV_SIZE); 
-#endif
-#ifdef UART4_DMA_SENDER
-  DMA_Sender_Init(&Uart4_DMA_Sender, &huart4);
-#endif  
-#ifdef UART4_DMA_RECEIVER
-  DMA_Receiver_Init(&Uart4_DMA_Receiver, &huart4, UART4_DMA_RECV_SIZE); 
-#endif 
-#ifdef __TASKTIMEMANAGER_H__
-	/*-----------持续传输任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(0,30), SenderKeepTransmit, Real_Mode);
-	/*-----------协议解析任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(0,30), PaddingProtocol, Real_Mode);
-#endif
- }
-#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
+
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER || UART5_DMA_SENDER
 /****************************************************
 	函数名:	_Write
 	功能:	通过串口DMA即刻发送一组数据
@@ -143,11 +112,13 @@ static int8_t _Write(DMA_Sender_T* uds,uint8_t* data, uint8_t len){
   }
   uint16_t cnt = 0;
   if((cnt = Queue_Link_OutSize(uds->DMA_Send_Queue)) > 0){
-    Queue_Link_Push(uds->DMA_Send_Queue, data, len); 
-    uds->Data = MALLOC(cnt); 
+		uds->Data = MALLOC(cnt); 
     MALLOC_CHECK(uds->Data,"_Write");
+		if(uds->Data == NULL)
+			return -1;
     Queue_Link_Pop(uds->DMA_Send_Queue, uds->Data);
     uds->Len = cnt;
+    Queue_Link_Push(uds->DMA_Send_Queue, data, len); 
   }else{
     uds->Data = MALLOC(len);
     MALLOC_CHECK(uds->Data,"_Write");
@@ -200,7 +171,7 @@ static int8_t _KeepTransmit(DMA_Sender_T* uds){
 }
 #endif
 
-#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
+#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER
 /****************************************************
 	函数名:	_ReadByte
 	功能:		从串口缓冲区读取1个字节
@@ -212,6 +183,8 @@ static int8_t _ReadByte(DMA_Receiver_T* udr,uint8_t* data){
 	uint16_t maxCur = (udr->DMA_BuffSize -  udr->Uart->hdmarx->Instance->CNDTR);
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
 		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		HAL_UART_DMAStop(udr->Uart);
+		HAL_UART_Receive_DMA(udr->Uart, udr->Data, udr->DMA_BuffSize);
 		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
 		return -1;
 	}
@@ -236,6 +209,8 @@ static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_
 	uint8_t tmp_Reversal = udr->Reversal;
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
 		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		HAL_UART_DMAStop(udr->Uart);
+		HAL_UART_Receive_DMA(udr->Uart, udr->Data, udr->DMA_BuffSize);
 		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
 		
 		return -1;
@@ -272,6 +247,8 @@ static int16_t _Read(DMA_Receiver_T* udr, uint8_t *data, uint8_t len){
 	uint16_t i = 0,cnt = 0, maxCur = (udr->DMA_BuffSize - udr->Uart->hdmarx->Instance->CNDTR); 
 	if(udr->Reversal == 1 && maxCur >= udr->Recv_Cur){
 		Log.error("DMA缓冲区破裂,丢弃当前数据重置\r\n");
+		HAL_UART_DMAStop(udr->Uart);
+		HAL_UART_Receive_DMA(udr->Uart, udr->Data, udr->DMA_BuffSize);
 		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
 		return -1;
 	}
@@ -307,7 +284,9 @@ __weak int fputc(int ch,FILE *f)
 #ifdef LL_LIB
 	LL_USART_TransmitData8(DEBUG_USART,ch);
 #else
+	#ifdef DEBUG_USART
 		 HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 10);
+	#endif
 #endif
 //  
 	//Uart1_DMA_Sender.Write(&Uart1_DMA_Sender,(uint8_t*)&ch, 1);
@@ -340,7 +319,7 @@ void Buff_To_Uart(void){
 
 //--------------------------------系统回调函数-------------------------------------
 
-#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER || UART5_DMA_SENDER
 /****************************************************
         函数名: HAL_UART_TxCpltCallback
         功能:   DMA发送完成中断 回调
@@ -370,6 +349,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
         Uart4_DMA_Sender.OverFlag = 0;
         FREE(Uart4_DMA_Sender.Data);
     }
+  #endif 
+  #ifdef UART5_DMA_SENDER
+    if(huart == Uart5_DMA_Sender.Uart){
+        Uart5_DMA_Sender.OverFlag = 0;
+        FREE(Uart5_DMA_Sender.Data);
+    }
   #endif    
 } 
 #endif
@@ -379,7 +364,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
         功能:   DMA接收完成中断 回调
         作者:   liyao 2016年9月14日10:55:11
 ****************************************************/ 
-#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER
+#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   #ifdef UART1_DMA_RECEIVER
     if(huart == Uart1_DMA_Receiver.Uart){
@@ -416,12 +401,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			}
       HAL_UART_Receive_DMA(huart, Uart4_DMA_Receiver.Data, Uart4_DMA_Receiver.DMA_BuffSize); 
     } 
+  #endif   
+  #ifdef UART5_DMA_RECEIVER
+    if(huart == Uart5_DMA_Receiver.Uart){
+      if(++Uart5_DMA_Receiver.Reversal == 2){
+        Log.error("USART4_DMA_接收数据被覆盖\r\n");
+				Uart5_DMA_Receiver.Reversal = 0;
+			}
+      HAL_UART_Receive_DMA(huart, Uart5_DMA_Receiver.Data, Uart5_DMA_Receiver.DMA_BuffSize); 
+    } 
   #endif      
 }
 #endif
  
-#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER ||\
-		 UART1_DMA_SENDER	  || UART2_DMA_SENDER   || UART3_DMA_SENDER   || UART4_DMA_SENDER
+#if  UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER ||\
+		 UART1_DMA_SENDER	  || UART2_DMA_SENDER   || UART3_DMA_SENDER   || UART4_DMA_SENDER   || UART5_DMA_SENDER
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 	#ifdef UART1_DMA_SENDER
 	if(huart == Uart1_DMA_Sender.Uart){
@@ -445,6 +439,12 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 	if(huart == Uart4_DMA_Sender.Uart){
 	  HAL_UART_Transmit_DMA(Uart4_DMA_Sender.Uart, Uart4_DMA_Sender.Data, Uart4_DMA_Sender.Len); 
 		Log.error("huart4 TX DMA error:0x%X\r\n", huart->ErrorCode);
+	}
+	#endif
+	#ifdef UART5_DMA_SENDER
+	if(huart == Uart5_DMA_Sender.Uart){
+	  HAL_UART_Transmit_DMA(Uart5_DMA_Sender.Uart, Uart5_DMA_Sender.Data, Uart5_DMA_Sender.Len); 
+		Log.error("huart5 TX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
 	
@@ -472,11 +472,17 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
 		Log.error("huart4 RX DMA error:0x%X\r\n", huart->ErrorCode);
 	}
 	#endif
+	#ifdef UART5_DMA_RECEIVER
+	if(huart == Uart5_DMA_Receiver.Uart){
+		HAL_UART_Receive_DMA(huart, Uart5_DMA_Receiver.Data, UART5_DMA_RECV_SIZE); 
+		Log.error("huart5 RX DMA error:0x%X\r\n", huart->ErrorCode);
+	}
+	#endif
 //	while(1);
 }
 #endif
 //--------------------------------快捷调用-------------------------------------
-#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER
+#if UART1_DMA_SENDER	|| UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER || UART5_DMA_SENDER
 /****************************************************
         函数名: SenderKeepTransmit
         功能:   持续传输发送者缓冲区中的缓冲数据
@@ -495,12 +501,15 @@ __weak void SenderKeepTransmit(void){
 #if UART4_DMA_SENDER == 1
   Uart4_DMA_Sender.KeepTransmit(&Uart4_DMA_Sender);
 #endif
+#if UART5_DMA_SENDER == 1
+  Uart5_DMA_Sender.KeepTransmit(&Uart5_DMA_Sender);
+#endif
 }
 #else
 __weak void SenderKeepTransmit(void){;}
 #endif
 
-#if  (PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER) || (PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER)|| (PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER) || (PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER)
+#if  (PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER) || (PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER)|| (PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER) || (PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER) || (PROTOCOL_RESOLVER_5 && UART5_DMA_RECEIVER)
 /****************************************************
         函数名: PaddingProtocol
         功能:   从串口缓冲区中读取数据到协议解析器
@@ -512,7 +521,7 @@ __weak void PaddingProtocol(void){
 	uint8_t data[BUFFSIZE] = {0};  
 	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
     while((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-      ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
+			ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
   #endif
 	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
 		while((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
@@ -526,44 +535,128 @@ __weak void PaddingProtocol(void){
 		while((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
 			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
 	#endif
+	#if PROTOCOL_RESOLVER_5 && UART5_DMA_RECEIVER
+		while((cnt = Uart5_DMA_Receiver.ReadTo(&Uart5_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
+			ProtocolResolver_5->Protocol_Put(ProtocolResolver_5,data,cnt);  
+	#endif
 }
 #else
 __weak void PaddingProtocol(void){;}
 #endif
 
-#if PROTOCOL_RESOLVER_IT_1 || PROTOCOL_RESOLVER_IT_2 || PROTOCOL_RESOLVER_IT_3 || PROTOCOL_RESOLVER_IT_4
+#if PROTOCOL_RESOLVER_IT_1 || PROTOCOL_RESOLVER_IT_2 || PROTOCOL_RESOLVER_IT_3 || PROTOCOL_RESOLVER_IT_4 || PROTOCOL_RESOLVER_IT_5
 __weak uint8_t  PaddingProtocol_IT(void){
 #if PROTOCOL_RESOLVER_IT_1
+	#if MCU_TYPE == 030
 	if(((READ_REG(USART1->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
 		uint8_t UartData =  READ_REG(USART1->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART1->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART1->DR);	
+	#endif
+//		USART1->DR = UartData;
 		ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,&UartData,1);
 		return 1;
 	}
 #endif
 #if PROTOCOL_RESOLVER_IT_2
+	#if MCU_TYPE == 030
 	if(((READ_REG(USART2->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
 		uint8_t UartData =  READ_REG(USART2->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART2->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART2->DR);
+	#endif
 		ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,&UartData,1);
 		return 1;
 	}
 #endif
 #if PROTOCOL_RESOLVER_IT_3
+	#if MCU_TYPE == 030
 	if(((READ_REG(USART3->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
 		uint8_t UartData =  READ_REG(USART3->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART3->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART3->DR);
+	#endif
+//		USART1->DR = UartData;
 		ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,&UartData,1);
 		return 1;
 	}
 #endif
 #if PROTOCOL_RESOLVER_IT_4
+	#if MCU_TYPE == 030
 	if(((READ_REG(USART4->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
 		uint8_t UartData =  READ_REG(USART4->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART4->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART4->DR);
+	#endif
 		ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,&UartData,1);
+		return 1;
+	}
+#endif
+#if PROTOCOL_RESOLVER_IT_5
+	#if MCU_TYPE == 030
+	if(((READ_REG(USART5->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART5->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART5->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t UartData =  READ_REG(USART5->DR);
+	#endif
+		ProtocolResolver_5->Protocol_Put(ProtocolResolver_5,&UartData,1);
 		return 1;
 	}
 #endif
 	return 0;
 }
 #endif
+
+
+/****************************************************
+	函数名:	ComBuff_Init
+	功能:		初始化全部通信缓冲区
+	作者:		liyao 2016年4月4日22:02:12 
+****************************************************/
+void ComBuff_Init(void){
+//UART1 初始化
+#ifdef UART1_DMA_SENDER
+  DMA_Sender_Init(&Uart1_DMA_Sender, &huart1);
+#endif  
+#ifdef UART1_DMA_RECEIVER
+  DMA_Receiver_Init(&Uart1_DMA_Receiver, &huart1, UART1_DMA_RECV_SIZE); 
+#endif  
+#ifdef UART2_DMA_SENDER
+  DMA_Sender_Init(&Uart2_DMA_Sender, &huart2);
+#endif  
+#ifdef UART2_DMA_RECEIVER
+  DMA_Receiver_Init(&Uart2_DMA_Receiver, &huart2, UART2_DMA_RECV_SIZE); 
+#endif 
+#ifdef UART3_DMA_SENDER
+  DMA_Sender_Init(&Uart3_DMA_Sender, &huart3);
+#endif  
+#ifdef UART3_DMA_RECEIVER
+  DMA_Receiver_Init(&Uart3_DMA_Receiver, &huart3, UART3_DMA_RECV_SIZE); 
+#endif
+#ifdef UART4_DMA_SENDER
+  DMA_Sender_Init(&Uart4_DMA_Sender, &huart4);
+#endif  
+#ifdef UART4_DMA_RECEIVER
+  DMA_Receiver_Init(&Uart4_DMA_Receiver, &huart4, UART4_DMA_RECV_SIZE); 
+#endif 
+#ifdef UART5_DMA_SENDER
+  DMA_Sender_Init(&Uart5_DMA_Sender, &huart5);
+#endif  
+#ifdef UART5_DMA_RECEIVER
+  DMA_Receiver_Init(&Uart5_DMA_Receiver, &huart5, UART5_DMA_RECV_SIZE); 
+#endif 
+#ifdef __TASKTIMEMANAGER_H__
+	/*-----------持续传输任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,10), SenderKeepTransmit, Real_Mode);
+	/*-----------协议解析任务-----------------*/
+  TaskTime_Add(TaskID++, TimeCycle(0,10), PaddingProtocol, Real_Mode);
+#endif
+}
 //--------------------------------printf实现-------------------------------------
 /*
 void printch(char ch);

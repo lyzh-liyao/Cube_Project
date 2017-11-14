@@ -17,7 +17,7 @@ extern void Log_Init(void);
 /*------------------------------MEM_LOG------------------------------*/
 
 #define POINT_COUNT 1 
-#define MALLOC_CHECK(var, fun) do{if(var == NULL){ Log.error("%s.%d----->ø’º‰∑÷≈‰ ß∞‹ %s", __FUNCTION__, __LINE__, fun);}}while(0)
+#define MALLOC_CHECK(var, fun) do{if(var == NULL){ Log.error("%s.%d----->ø’º‰∑÷≈‰ ß∞‹ %s\r\n", __FUNCTION__, __LINE__, fun);}}while(0)
 #define FREE_CHECK(var,len) do{}while(0);
 	
 //#define MALLOC(len) os_malloc(len)

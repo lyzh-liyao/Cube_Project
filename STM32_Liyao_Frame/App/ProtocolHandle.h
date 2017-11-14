@@ -3,6 +3,6 @@
 #include "FrameConfig.h"
 #include "ProtocolFrame.h"
 
-extern void Template_Recv_Handle(Protocol_Info_T* pi);
+extern void Super_Ack_Handle(Protocol_Info_T* pi);
 #endif
 

@@ -9,7 +9,7 @@ TaskTime_T* TaskTime_Head = &OSInfo.TThead;//链表头
 uint8_t TaskID = 0;
 uint64_t jiffies = 0;//自系统启动以来产生的节拍的总数
 //临时变量
-static TaskTime_T *tmpTaskTime,*prevTaskTime,*nextTaskTime;
+//static TaskTime_T *tmpTaskTime,*prevTaskTime,*nextTaskTime;
 
 /****************************************************
 	函数名:	TaskTime_Check_ID
@@ -76,7 +76,8 @@ int8_t _TaskTime_AllocID(void){
 	static int8_t seq = 0;
 	Realloc:	
 	seq = (seq+1)%TASK_MAX_COUNT;
-	tmpTaskTime = TaskTime_Head->_next;
+	
+	TaskTime_T* tmpTaskTime = TaskTime_Head->_next;
 	while(tmpTaskTime != TaskTime_Head){
 		if(tmpTaskTime->_TaskID  == seq){
 			goto Realloc;
@@ -108,49 +109,67 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	newTaskTime->Priority		= alias;//优先级 Priority
 	newTaskTime->_TaskState = TASK_INIT;		 //任务状态
 	newTaskTime->TaskCycle = TaskCycle;//运行周期
-	newTaskTime->_TaskCycleCount = (TaskCycle + alias * TASK_FIRST_DELAY);//首次运行倒计时 
+	newTaskTime->TaskMode = TaskMode;
+	if(TaskMode == Single_Mode)
+		newTaskTime->_TaskCycleCount = TaskCycle;
+	else
+		newTaskTime->_TaskCycleCount = (TaskCycle + (rand() % TASK_FIRST_DELAY));//首次运行倒计时 
 	newTaskTime->Run = Run;//任务函数指针
 	newTaskTime->RunCount = 0;
 	newTaskTime->RunElapsed = 0; 
 	newTaskTime->StoreCount = 0;
 	newTaskTime->_next = NULL;
-	newTaskTime->TaskMode = TaskMode;
 	OSInfo.TaskSize++;
 	OSInfo.TaskFreeSize--; 
  
  
+//	//首个任务
+//	if(TaskTime_Head->_next == TaskTime_Head){
+//		SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
+//		TaskTime_Head->_next = TaskTime_Head->_prev = newTaskTime; 
+//		  newTaskTime->_next =   newTaskTime->_prev = TaskTime_Head;
+//		SYSTICK_IT_ENABLE(); 
+//	}else{//已有任务 
+//		tmpTaskTime = TaskTime_Head->_next;
+//		while(tmpTaskTime != TaskTime_Head){//新任务放入链表
+//			if(tmpTaskTime->Priority <= newTaskTime->Priority){//当前任务优先级比新任务优先级高则 
+//				tmpTaskTime = tmpTaskTime->_next; 
+//				if(tmpTaskTime == TaskTime_Head){//循环到最后依然没有匹配到
+//					SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
+//					prevTaskTime = TaskTime_Head->_prev;
+//					prevTaskTime->_next = newTaskTime;			//	A_Next = N 
+//					tmpTaskTime->_prev = newTaskTime;				//	B_Prev = N
+//					newTaskTime->_prev = prevTaskTime;			//	N_Prev = A
+//					newTaskTime->_next = tmpTaskTime;				//	N_Next = B
+//					SYSTICK_IT_ENABLE(); 
+//				}
+//				continue;
+//			}else{//当前任务优先级比新任务优先级低或相等 	A_Next = B    B_Prev = A
+//				SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
+//				prevTaskTime = tmpTaskTime->_prev;
+//				prevTaskTime->_next = newTaskTime;			//	A_Next = N 
+//				tmpTaskTime->_prev = newTaskTime;				//	B_Prev = N
+//				newTaskTime->_prev = prevTaskTime;			//	N_Prev = A
+//				newTaskTime->_next = tmpTaskTime;				//	N_Next = B 
+//				SYSTICK_IT_ENABLE(); 
+//				break;
+//			}
+//		}
+//	}
+
 	//首个任务
 	if(TaskTime_Head->_next == TaskTime_Head){
 		SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
 		TaskTime_Head->_next = TaskTime_Head->_prev = newTaskTime; 
 		  newTaskTime->_next =   newTaskTime->_prev = TaskTime_Head;
 		SYSTICK_IT_ENABLE(); 
-	}else{//已有任务 
-		tmpTaskTime = TaskTime_Head->_next;
-		while(tmpTaskTime != TaskTime_Head){//新任务放入链表
-			if(tmpTaskTime->Priority <= newTaskTime->Priority){//当前任务优先级比新任务优先级高则 
-				tmpTaskTime = tmpTaskTime->_next; 
-				if(tmpTaskTime == TaskTime_Head){//循环到最后依然没有匹配到
-					SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
-					prevTaskTime = TaskTime_Head->_prev;
-					prevTaskTime->_next = newTaskTime;			//	A_Next = N 
-					tmpTaskTime->_prev = newTaskTime;				//	B_Prev = N
-					newTaskTime->_prev = prevTaskTime;			//	N_Prev = A
-					newTaskTime->_next = tmpTaskTime;				//	N_Next = B
-					SYSTICK_IT_ENABLE(); 
-				}
-				continue;
-			}else{//当前任务优先级比新任务优先级低或相等 	A_Next = B    B_Prev = A
-				SYSTICK_IT_DISABLE();//中断关(防止中断访问) 
-				prevTaskTime = tmpTaskTime->_prev;
-				prevTaskTime->_next = newTaskTime;			//	A_Next = N 
-				tmpTaskTime->_prev = newTaskTime;				//	B_Prev = N
-				newTaskTime->_prev = prevTaskTime;			//	N_Prev = A
-				newTaskTime->_next = tmpTaskTime;				//	N_Next = B 
-				SYSTICK_IT_ENABLE(); 
-				break;
-			}
-		}
+	}else{//已有任务  
+		SYSTICK_IT_DISABLE();//中断关(防止中断访问)  
+		newTaskTime->_prev = TaskTime_Head->_prev;
+		newTaskTime->_next = TaskTime_Head; 
+		TaskTime_Head->_prev->_next = newTaskTime;
+		TaskTime_Head->_prev = newTaskTime;
+		SYSTICK_IT_ENABLE(); 
 	}
 	return newTaskTime->_TaskID;
 }
@@ -166,7 +185,8 @@ static int8_t _TaskTime_Remove(int8_t id){
 	if(TaskTime_Check_ID(id) < 0){
 		return -1;
 	}
-	tmpTaskTime = TaskTime_Head->_next;
+	TaskTime_T* tmpTaskTime = TaskTime_Head->_next;
+	TaskTime_T* prevTaskTime,*nextTaskTime;
 	while(tmpTaskTime != TaskTime_Head){
 		if(tmpTaskTime->_TaskID  == id){
 			SYSTICK_IT_DISABLE();//中断关(防止中断访问)
@@ -312,7 +332,7 @@ void TaskTime_Run(void){
 	#ifdef LOAD_MONITOR_ON
 		COUNTER_OFF;
 	#endif
-	tmpTaskTime = TaskTime_Head;
+	TaskTime_T *tmpTaskTime = TaskTime_Head;
 	do{ 
 		switch(tmpTaskTime->_TaskState){
 			case TASK_INIT:

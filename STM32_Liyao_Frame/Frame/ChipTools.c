@@ -21,5 +21,11 @@ void CheckEndian(void)
   printf("%c\r\n", ((char)endian_test.l));
 }  
 
-
+int litter_big_convert(uint8_t* Dest, const uint8_t* Src, int length){
+  if(NULL == Dest || NULL == Src)
+      return -1;
+  for(int i = 0; i < length; i++)
+      Dest[length - i - 1] = Src[i];
+	return 0;
+}
 

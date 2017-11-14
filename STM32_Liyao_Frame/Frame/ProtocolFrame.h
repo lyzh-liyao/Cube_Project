@@ -13,6 +13,8 @@ FE->FE 7E		*/
 #define ACTION_MODULE_Pos 0
 #define u8 uint8_t 
 #define HandleAdd(FunName)   extern void FunName(Protocol_Info_T* pi)
+#define CUSTOM_MODULE  0xEE				//发送时指定模块
+#define BROADCAST_MODULE 0xFF
 //将特征包转换成广播特征
 #define TO_BROADCAST_MODULE_ACTION(MODULE_ACTION) (MODULE_ACTION | 0x0000FF00)
 //组合成uint32_t类型的特征包
@@ -111,6 +113,9 @@ struct _PROTOCOL_RESOLVER_T{
 #endif
 #if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
 	extern Protocol_Resolver_T *ProtocolResolver_4; 
+#endif
+#if PROTOCOL_RESOLVER_5 || PROTOCOL_RESOLVER_IT_5
+	extern Protocol_Resolver_T *ProtocolResolver_5; 
 #endif
 
 extern void ProtocolFrame_Init(void);
