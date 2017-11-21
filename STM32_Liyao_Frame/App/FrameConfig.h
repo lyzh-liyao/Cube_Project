@@ -7,8 +7,9 @@
 #define PRINT_ERR           //打开调试
 //#define UART1_DMA_SENDER 1   //串口DMA发送者
 //#define UART1_DMA_RECEIVER 100 //串口DMA接收者
-//#define PROTOCOL_RESOLVER_1 1 //串口DMA数据解析者
-//#define PROTOCOL_RESOLVER_IT_2 1 //串口IT数据解析者
+//#define PROTOCOL_RESOLVER_1 1 //串口DMA数据解析者 
+//#define UART2_IT_RECEIVER 100 //串口DMA接收者
+//#define PROTOCOL_RESOLVER_2 1 //串口DMA数据解析者
 #define PROTOCOL_CHECKSUM 0
 #define LOG_OUT 
 #define MCU_TYPE 030

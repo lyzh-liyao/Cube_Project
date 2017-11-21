@@ -196,12 +196,6 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_1->Protocol_Queue = Queue_Link_Init(RESOLVER_1_RPQUEUE_SIZE); 
 	ProtocolResolver_1->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_1->Fetch_Protocol = _Fetch_Protocol;
-	
-	WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
-	SET_BIT(USART1->CR1, USART_ISR_IDLE);
-	#if PROTOCOL_RESOLVER_IT_1
-	__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
-	#endif
 #endif  
 
 #if PROTOCOL_RESOLVER_2 || PROTOCOL_RESOLVER_IT_2
@@ -209,12 +203,6 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_2->Protocol_Queue = Queue_Link_Init(RESOLVER_2_RPQUEUE_SIZE); 
 	ProtocolResolver_2->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_2->Fetch_Protocol = _Fetch_Protocol;
-		
-	WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
-	SET_BIT(USART2->CR1, USART_ISR_IDLE);
-	#if PROTOCOL_RESOLVER_IT_2
-	__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
-	#endif
 #endif  
 	
 #if PROTOCOL_RESOLVER_3 || PROTOCOL_RESOLVER_IT_3
@@ -222,12 +210,6 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_3->Protocol_Queue = Queue_Link_Init(RESOLVER_3_RPQUEUE_SIZE); 
 	ProtocolResolver_3->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_3->Fetch_Protocol = _Fetch_Protocol;
-			
-	WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
-	SET_BIT(USART3->CR1, USART_ISR_IDLE);
-	#if PROTOCOL_RESOLVER_IT_3
-	__HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
-	#endif
 #endif 
 	
 #if PROTOCOL_RESOLVER_4 || PROTOCOL_RESOLVER_IT_4
@@ -235,11 +217,6 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_4->Protocol_Queue = Queue_Link_Init(RESOLVER_4_RPQUEUE_SIZE); 
 	ProtocolResolver_4->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_4->Fetch_Protocol = _Fetch_Protocol;
-	WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
-	SET_BIT(USART4->CR1, USART_ISR_IDLE);
-	#if PROTOCOL_RESOLVER_IT_4
-	__HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
-	#endif	
 #endif
 	
 #if PROTOCOL_RESOLVER_5 || PROTOCOL_RESOLVER_IT_5
@@ -247,11 +224,6 @@ void ProtocolFrame_Init(){
 	ProtocolResolver_5->Protocol_Queue = Queue_Link_Init(RESOLVER_5_RPQUEUE_SIZE); 
 	ProtocolResolver_5->Protocol_Put = _Protocol_Put;
 	ProtocolResolver_5->Fetch_Protocol = _Fetch_Protocol;
-	WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
-	SET_BIT(USART5->CR1, USART_ISR_IDLE);
-	#if PROTOCOL_RESOLVER_IT_5
-	__HAL_UART_ENABLE_IT(&huart5, UART_IT_RXNE);
-	#endif	
 #endif
 
 #ifdef __TASKTIMEMANAGER_H__
@@ -390,185 +362,7 @@ void FetchProtocols(void)
 
 
 
-/****************************************************
-        函数名: PaddingProtocol
-        功能:   从串口缓冲区中读取数据到协议解析器
-        作者:   liyao 2016年9月14日10:55:11
-****************************************************/ 
-int8_t PaddingProtocol(void){
-	#if UART1_DMA_RECEIVER || UART2_DMA_RECEIVER || UART3_DMA_RECEIVER || UART4_DMA_RECEIVER || UART5_DMA_RECEIVER
-	int8_t cnt = 1;
-	static uint8_t UartData[SINGLE_BUFFSIZE] = {0};
-	#endif 
-	#if PROTOCOL_RESOLVER_1  && UART1_DMA_RECEIVER		//串口DMA + 协议解析
-		if((READ_REG(USART1->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
-			while((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
-				ProtocolResolver_1->Protocol_Put(ProtocolResolver_1, UartData, cnt);
-			return 1;
-		}
-  #elif PROTOCOL_RESOLVER_IT_1											//串口IT + 协议解析
-		static uint8_t UartBuff1[UART_BUFFSIZE];
-		static uint8_t Index1 = 0;
-		#if MCU_TYPE == 030
-		if(((READ_REG(USART1->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART1->RDR);
-		#elif MCU_TYPE == 103
-		if(((READ_REG(USART1->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART1->DR);	
-		#endif
-			UartBuff1[Index1++%UART_BUFFSIZE] = SUartData;
-			return 1;
-		}
-		if((READ_REG(USART1->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
-			if(Index1 > UART_BUFFSIZE){
-				Index1 = 0;
-				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
-				return 1;
-			}
-			ProtocolResolver_1->Protocol_Put(ProtocolResolver_1, UartBuff1 , Index1);
-			Index1 = 0;
-			return 1;
-		}
-	#endif
-	
-		
-	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
-		if((READ_REG(USART2->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
-			while((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
-				ProtocolResolver_2->Protocol_Put(ProtocolResolver_2, UartData, cnt);
-			return 1;
-		}
-	#elif PROTOCOL_RESOLVER_IT_2
-		static uint8_t UartBuff2[UART_BUFFSIZE];
-		static uint8_t Index2 = 0;
-		#if MCU_TYPE == 030
-		if(((READ_REG(USART2->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART2->RDR);
-		#elif MCU_TYPE == 103
-		if(((READ_REG(USART2->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART2->DR);
-		#endif
-			UartBuff2[Index2++%UART_BUFFSIZE] = SUartData;
-			return 1;
-		}
-		if((READ_REG(USART2->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
-			if(Index2 > UART_BUFFSIZE){
-				Index2 = 0;
-				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
-				return 1;
-			}
-			ProtocolResolver_2->Protocol_Put(ProtocolResolver_2, UartBuff2 , Index2);
-			Index2 = 0;
-			return 1;
-		}
-	#endif
-	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
-		if((READ_REG(USART3->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
-			while((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
-				ProtocolResolver_3->Protocol_Put(ProtocolResolver_3, UartData, cnt);  
-			return 1;
-		}
-	#elif PROTOCOL_RESOLVER_IT_3
-	static uint8_t UartBuff3[UART_BUFFSIZE];
-	static uint8_t Index3 = 0;
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART3->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t SUartData =  READ_REG(USART3->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART3->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t SUartData =  READ_REG(USART3->DR);
-	#endif
-		UartBuff3[Index3++%UART_BUFFSIZE] = SUartData;
-		return 1;
-	}else if((READ_REG(USART3->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
-			if(Index3 > UART_BUFFSIZE){
-				Index3 = 0;
-				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
-				return 1;
-			}
-			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3, UartBuff3 , Index3);
-			Index3 = 0;
-			return 1;
-	}
-	#endif
-	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
-		if((READ_REG(USART4->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
-			while((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
-				ProtocolResolver_4->Protocol_Put(ProtocolResolver_4, UartData, cnt);
-			return 1;
-		}
-	#elif PROTOCOL_RESOLVER_IT_4
-		static uint8_t UartBuff4[UART_BUFFSIZE];
-		static uint8_t Index4 = 0;
-		#if MCU_TYPE == 030
-		if(((READ_REG(USART4->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART4->RDR);
-		#elif MCU_TYPE == 103
-		if(((READ_REG(USART4->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART4->DR);
-		#endif
-			UartBuff4[Index4++%UART_BUFFSIZE] = SUartData;
-			return 1;
-		}
-		if((READ_REG(USART4->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
-			if(Index4 > UART_BUFFSIZE){
-				Index4 = 0;
-				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
-				return 1;
-			}
-			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4, UartBuff4 , Index4);
-			Index4 = 0;
-			return 1;
-		}
-	#endif
-	#if PROTOCOL_RESOLVER_5 && UART5_DMA_RECEIVER
-		if((READ_REG(USART5->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
-			while((cnt = Uart5_DMA_Receiver.ReadTo(&Uart5_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
-				ProtocolResolver_5->Protocol_Put(ProtocolResolver_5, UartData, cnt);
-			return 1;
-		}
-	#elif PROTOCOL_RESOLVER_IT_5
-		static uint8_t UartBuff5[UART_BUFFSIZE];
-		static uint8_t Index5 = 0;
-		#if MCU_TYPE == 030
-		if(((READ_REG(USART5->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART5->RDR);
-		#elif MCU_TYPE == 103
-		if(((READ_REG(USART5->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
-			uint8_t SUartData =  READ_REG(USART5->DR);
-		#endif
-			UartBuff5[Index5++%UART_BUFFSIZE] = SUartData;
-			return 1;
-		}else if((READ_REG(USART5->ISR) & USART_ISR_IDLE) != RESET){
-			WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
-			if(Index5 > UART_BUFFSIZE){
-				Index5 = 0;
-				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
-				return 1;
-			}
-			ProtocolResolver_5->Protocol_Put(ProtocolResolver_5, UartBuff5 , Index5);
-			Index5 = 0;
-			return 1;
-		}
-	#endif 
-		
-		
-	#if UART1_DMA_SENDER || UART2_DMA_SENDER || UART3_DMA_SENDER || UART4_DMA_SENDER || UART5_DMA_SENDER
-		if(((READ_REG(USART1->ISR)| READ_REG(USART2->ISR)|READ_REG(USART3->ISR)|READ_REG(USART4->ISR)| READ_REG(USART5->ISR)) & USART_ISR_TC) != RESET){
-			TaskTime_Add(TaskID++, TimeCycle(0, 0), SenderKeepTransmit, Single_Mode);
-		}
-	#endif
-		return 0;
-}
+
 		
 //帧头	帧类型	源模块	目标模块	历史数据编号	数据长度	数据	校验和	帧尾
 static int8_t _Protocol_Put(Protocol_Resolver_T* pr,uint8_t* datas,uint8_t len){

@@ -28,7 +28,6 @@ FE->FE 7E		*/
 #define PULL_ACTION_MODULE(val)				((val >> ACTION_MODULE_Pos) & 0xFF)
 //变长协议
 #define ELONGATE_SIZE 0xFF 
-#define UART_BUFFSIZE 100
 /*协议类型  发送   接收  转发*/
 typedef enum{ SEND, RECEIVE, TRANSPOND }PROTOCOL_TYPE;
 typedef enum{OK_P, LEN_ERR_P, DATALEN_ERR_P,CHECKSUM_ERR_P, TAIL_ERR_P, EQUALS_ERR_P}PROTOCOL_Status;
@@ -125,7 +124,6 @@ struct _PROTOCOL_RESOLVER_T{
 #endif
 
 
-#define ProtocolFrame_IRQHandler() do{if(PaddingProtocol()) return;}while(0)
 extern void ProtocolFrame_Init(void);
 //extern Protocol_Info_T Create_Protocol_Info(int8_t len,SEND_ACTION type,void (*handle)(Protocol_Info_T*),int8_t (*check)(void*)); 
 //int8_t Send_To_Uart(Protocol_Info_T* protocol_info);

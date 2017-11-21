@@ -110,9 +110,19 @@ extern void ComBuff_Init(void);
 extern void ComBuff_Configuration(void);
 
 extern void SenderKeepTransmit(void);
-extern uint8_t PaddingProtocol_IT(void);
 
-
+#define ProtocolFrame_IRQHandler() do{if(ComBuff_IRQHandler()) return;}while(0)
+extern void Uart1_DMA_IDLE_CallBack(void);
+extern void Uart2_DMA_IDLE_CallBack(void);
+extern void Uart3_DMA_IDLE_CallBack(void);
+extern void Uart4_DMA_IDLE_CallBack(void);
+extern void Uart5_DMA_IDLE_CallBack(void);
+extern void Uart1_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len);
+extern void Uart2_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len);
+extern void Uart3_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len);
+extern void Uart4_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len);
+extern void Uart5_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len);
+extern int8_t ComBuff_IRQHandler(void);
 //--------------------------------printf µœ÷-------------------------------------
 /*
 #include <stdarg.h>

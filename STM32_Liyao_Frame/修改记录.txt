@@ -20,4 +20,6 @@
 增加发送完成中断替代定时keep发送
 增加接收空闲中断代替定时解析PaddingProtocol
 增加接收协议支持转发
+增加串口DMA和IT方式的空闲处理接口void Uart4_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len)
+解除中断串口接收与协议框架的依赖
 

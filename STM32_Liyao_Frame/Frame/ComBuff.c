@@ -215,7 +215,6 @@ static int16_t _ReadTo(DMA_Receiver_T* udr, uint8_t value, uint8_t *data, uint8_
 		HAL_UART_DMAStop(udr->Uart);
 		HAL_UART_Receive_DMA(udr->Uart, udr->Data, udr->DMA_BuffSize);
 		udr->Recv_Cur = udr->Reversal = 0;//缓冲区破裂后容错抛弃数据
-		
 		return -1;
 	}
   if((udr->Recv_Cur ==  maxCur) && (0 == udr->Reversal))
@@ -318,7 +317,264 @@ void Buff_To_Uart(void){
 //			break;
 //		}
 }
+
+
+__weak void Uart1_DMA_IDLE_CallBack(void){
+#if PROTOCOL_RESOLVER_1  && UART1_DMA_RECEIVER		//串口DMA + 协议解析
+	uint8_t UartData[SINGLE_BUFFSIZE];
+	int8_t cnt = 1;
+	while((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
+		ProtocolResolver_1->Protocol_Put(ProtocolResolver_1, UartData, cnt);
+#endif
+}
+__weak void Uart2_DMA_IDLE_CallBack(void){
+#if PROTOCOL_RESOLVER_2  && UART2_DMA_RECEIVER		//串口DMA + 协议解析
+	uint8_t UartData[SINGLE_BUFFSIZE];
+	int8_t cnt = 1;
+	while((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
+		ProtocolResolver_2->Protocol_Put(ProtocolResolver_2, UartData, cnt);
+#endif
+}
+__weak void Uart3_DMA_IDLE_CallBack(void){
+#if PROTOCOL_RESOLVER_3  && UART3_DMA_RECEIVER		//串口DMA + 协议解析
+	uint8_t UartData[SINGLE_BUFFSIZE];
+	int8_t cnt = 1;
+	while((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
+				ProtocolResolver_3->Protocol_Put(ProtocolResolver_3, UartData, cnt); 
+#endif	
+}
+
+__weak void Uart4_DMA_IDLE_CallBack(void){
+#if PROTOCOL_RESOLVER_4  && UART4_DMA_RECEIVER		//串口DMA + 协议解析
+	uint8_t UartData[SINGLE_BUFFSIZE];
+	int8_t cnt = 1;
+	while((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
+		ProtocolResolver_4->Protocol_Put(ProtocolResolver_4, UartData, cnt);
+#endif	
+}
+
+__weak void Uart5_DMA_IDLE_CallBack(void){
+#if PROTOCOL_RESOLVER_5  && UART5_DMA_RECEIVER		//串口DMA + 协议解析
+	uint8_t UartData[SINGLE_BUFFSIZE];
+	int8_t cnt = 1;
+	while((cnt = Uart5_DMA_Receiver.ReadTo(&Uart5_DMA_Receiver, PROTOCOL_TAIL, UartData, SINGLE_BUFFSIZE))>0)
+		ProtocolResolver_5->Protocol_Put(ProtocolResolver_5, UartData, cnt);
+#endif	
+}
+
+__weak void Uart1_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len){
+#if PROTOCOL_RESOLVER_1
+	ProtocolResolver_1->Protocol_Put(ProtocolResolver_1, Data , Len);
+#endif
+}
+
+__weak void Uart2_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len){
+#if PROTOCOL_RESOLVER_2
+	ProtocolResolver_2->Protocol_Put(ProtocolResolver_2, Data , Len);
+#endif
+}
+
+__weak void Uart3_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len){
+#if PROTOCOL_RESOLVER_3
+	ProtocolResolver_3->Protocol_Put(ProtocolResolver_3, Data , Len);
+#endif
+}
+
+__weak void Uart4_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len){
+#if PROTOCOL_RESOLVER_4
+	ProtocolResolver_4->Protocol_Put(ProtocolResolver_4, Data, Len);
+#endif
+}
+
+__weak void Uart5_IT_IDLE_CallBack(uint8_t* Data, uint8_t Len){
+#if PROTOCOL_RESOLVER_5
+	ProtocolResolver_5->Protocol_Put(ProtocolResolver_5, Data , Len);
+#endif
+}
  
+/****************************************************
+        函数名: PaddingProtocol
+        功能:   从串口缓冲区中读取数据到协议解析器
+        作者:   liyao 2016年9月14日10:55:11
+****************************************************/ 
+int8_t ComBuff_IRQHandler(void){
+	#if UART1_DMA_RECEIVER		//串口DMA + 协议解析
+		if((READ_REG(USART1->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
+			Uart1_DMA_IDLE_CallBack();
+			return 1;
+		}
+  #elif UART1_IT_RECEIVER											//串口IT + 协议解析
+		static uint8_t UartBuff1[UART1_IT_RECEIVER];
+		static uint8_t Index1 = 0;
+		#if MCU_TYPE == 030
+		if(((READ_REG(USART1->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART1->RDR);
+		#elif MCU_TYPE == 103
+		if(((READ_REG(USART1->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART1->DR);	
+		#endif
+			UartBuff1[Index1++%UART1_IT_RECEIVER] = SUartData;
+			return 1;
+		}
+		if((READ_REG(USART1->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
+			if(Index1 > UART1_IT_RECEIVER){
+				Index1 = 0;
+				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
+				return 1;
+			}
+			Uart1_IT_IDLE_CallBack(&UartBuff1, Index1);
+			Index1 = 0;
+			return 1;
+		}
+	#endif
+	
+		
+	#if UART2_DMA_RECEIVER
+		if((READ_REG(USART2->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
+			Uart2_DMA_IDLE_CallBack();
+			return 1;
+		}
+	#elif UART2_IT_RECEIVER
+		static uint8_t UartBuff2[UART2_IT_RECEIVER];
+		static uint8_t Index2 = 0;
+		#if MCU_TYPE == 030
+		if(((READ_REG(USART2->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART2->RDR);
+		#elif MCU_TYPE == 103
+		if(((READ_REG(USART2->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART2->DR);
+		#endif
+			UartBuff2[Index2++%UART2_IT_RECEIVER] = SUartData;
+			return 1;
+		}
+		if((READ_REG(USART2->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
+			if(Index2 > UART2_IT_RECEIVER){
+				Index2 = 0;
+				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
+				return 1;
+			}
+			Uart2_IT_IDLE_CallBack(UartBuff2, Index2);
+			Index2 = 0;
+			return 1;
+		}
+	#endif
+	#if UART3_DMA_RECEIVER
+		if((READ_REG(USART3->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
+			Uart3_DMA_IDLE_CallBack();
+			return 1;
+		}
+	#elif UART3_IT_RECEIVER
+	static uint8_t UartBuff3[UART3_IT_RECEIVER];
+	static uint8_t Index3 = 0;
+	#if MCU_TYPE == 030
+	if(((READ_REG(USART3->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t SUartData =  READ_REG(USART3->RDR);
+	#elif MCU_TYPE == 103
+	if(((READ_REG(USART3->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
+		uint8_t SUartData =  READ_REG(USART3->DR);
+	#endif
+		UartBuff3[Index3++%UART3_IT_RECEIVER] = SUartData;
+		return 1;
+	}else if((READ_REG(USART3->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
+			if(Index3 > UART3_IT_RECEIVER){
+				Index3 = 0;
+				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
+				return 1;
+			}
+			Uart3_IT_IDLE_CallBack(UartBuff3, Index3);
+			Index3 = 0;
+			return 1;
+	}
+	#endif
+	#if UART4_DMA_RECEIVER
+		if((READ_REG(USART4->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
+			Uart4_DMA_IDLE_CallBack();
+			return 1;
+		}
+	#elif UART4_IT_RECEIVER
+		static uint8_t UartBuff4[UART4_IT_RECEIVER];
+		static uint8_t Index4 = 0;
+		#if MCU_TYPE == 030
+		if(((READ_REG(USART4->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART4->RDR);
+		#elif MCU_TYPE == 103
+		if(((READ_REG(USART4->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART4->DR);
+		#endif
+			UartBuff4[Index4++%UART4_IT_RECEIVER] = SUartData;
+			return 1;
+		}
+		if((READ_REG(USART4->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
+			if(Index4 > UART4_IT_RECEIVER){
+				Index4 = 0;
+				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
+				return 1;
+			}
+			Uart4_IT_IDLE_CallBack(UartBuff4 , Index4);
+			Index4 = 0;
+			return 1;
+		}
+	#endif
+	#if UART5_DMA_RECEIVER
+		if((READ_REG(USART5->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
+			Uart5_DMA_IDLE_CallBack();
+			return 1;
+		}
+	#elif UART5_IT_RECEIVER
+		static uint8_t UartBuff5[UART5_IT_RECEIVER];
+		static uint8_t Index5 = 0;
+		#if MCU_TYPE == 030
+		if(((READ_REG(USART5->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART5->RDR);
+		#elif MCU_TYPE == 103
+		if(((READ_REG(USART5->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
+			uint8_t SUartData =  READ_REG(USART5->DR);
+		#endif
+			UartBuff5[Index5++%UART5_IT_RECEIVER] = SUartData;
+			return 1;
+		}else if((READ_REG(USART5->ISR) & USART_ISR_IDLE) != RESET){
+			WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
+			if(Index5 > UART5_IT_RECEIVER){
+				Index5 = 0;
+				Log.waring("串口空闲中断前接收过多数据缓冲区移除\r\n");
+				return 1;
+			}
+			Uart5_IT_IDLE_CallBack( UartBuff5 , Index5);
+			Index5 = 0;
+			return 1;
+		}
+	#endif 
+		
+		if((( 0
+#ifdef UART1_DMA_SENDER
+		| READ_REG(USART1->ISR)
+#endif
+#ifdef UART2_DMA_SENDER
+		| READ_REG(USART2->ISR)
+#endif
+#ifdef UART3_DMA_SENDER
+		| READ_REG(USART3->ISR)
+#endif
+#ifdef UART4_DMA_SENDER
+		| READ_REG(USART4->ISR)
+#endif
+#ifdef UART5_DMA_SENDER
+		| READ_REG(USART5->ISR)
+#endif
+		) & USART_ISR_TC) != RESET){
+			TaskTime_Add(TaskID++, TimeCycle(0, 0), SenderKeepTransmit, Single_Mode);
+		}
+		return 0;
+}
 
 //--------------------------------系统回调函数-------------------------------------
 
@@ -550,6 +806,45 @@ void ComBuff_Init(void){
 #ifdef UART5_DMA_RECEIVER
   DMA_Receiver_Init(&Uart5_DMA_Receiver, &huart5, UART5_DMA_RECV_SIZE); 
 #endif 
+
+#ifdef UART1_IT_RECEIVER
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+#endif
+#ifdef UART2_IT_RECEIVER
+	__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+#endif
+#ifdef UART3_IT_RECEIVER
+	__HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+#endif
+#ifdef UART4_IT_RECEIVER
+	__HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
+#endif
+#ifdef UART5_IT_RECEIVER
+	__HAL_UART_ENABLE_IT(&huart5, UART_IT_RXNE);
+#endif
+
+#if UART1_IT_RECEIVER || UART1_DMA_RECEIVER
+	WRITE_REG(USART1->ICR, UART_CLEAR_IDLEF);
+	SET_BIT(USART1->CR1, USART_ISR_IDLE);
+#endif
+#if UART2_IT_RECEIVER || UART2_DMA_RECEIVER
+	WRITE_REG(USART2->ICR, UART_CLEAR_IDLEF);
+	SET_BIT(USART2->CR1, USART_ISR_IDLE);
+#endif
+#if UART3_IT_RECEIVER || UART3_DMA_RECEIVER
+	WRITE_REG(USART3->ICR, UART_CLEAR_IDLEF);
+	SET_BIT(USART3->CR1, USART_ISR_IDLE);
+#endif
+#if UART4_IT_RECEIVER || UART4_DMA_RECEIVER
+	WRITE_REG(USART4->ICR, UART_CLEAR_IDLEF);
+	SET_BIT(USART4->CR1, USART_ISR_IDLE);
+#endif
+#if UART5_IT_RECEIVER || UART5_DMA_RECEIVER
+	WRITE_REG(USART5->ICR, UART_CLEAR_IDLEF);
+	SET_BIT(USART5->CR1, USART_ISR_IDLE);
+#endif
+
+
 #ifdef __TASKTIMEMANAGER_H__
 	/*-----------持续传输任务-----------------*/
 //  TaskTime_Add(TaskID++, TimeCycle(0,10), SenderKeepTransmit, Real_Mode);
