@@ -8,6 +8,9 @@
 FD->FE 7D
 F8->FE 78
 FE->FE 7E		*/
+#define PROTOCOL_HEAD 0xFD
+#define PROTOCOL_TAIL 0xF8
+
 #define SRC_MODULE_Pos 16
 #define TARGET_MODULE_Pos 8
 #define ACTION_MODULE_Pos 0
@@ -25,7 +28,7 @@ FE->FE 7E		*/
 #define PULL_ACTION_MODULE(val)				((val >> ACTION_MODULE_Pos) & 0xFF)
 //变长协议
 #define ELONGATE_SIZE 0xFF 
-
+#define UART_BUFFSIZE 100
 /*协议类型  发送   接收  转发*/
 typedef enum{ SEND, RECEIVE, TRANSPOND }PROTOCOL_TYPE;
 typedef enum{OK_P, LEN_ERR_P, DATALEN_ERR_P,CHECKSUM_ERR_P, TAIL_ERR_P, EQUALS_ERR_P}PROTOCOL_Status;
@@ -53,11 +56,14 @@ typedef struct _PROTOCOL_RESOLVER_T Protocol_Resolver_T;
 struct _PROTOCOL_DESC_T{ 
 	uint32_t ModuleAction;
 	uint8_t ProtocolSize;	//参数结构体大小
-	uint8_t	Serial; 
-	void (*Send)(uint8_t* Data, uint8_t Len);
-	void (*Handle)(Protocol_Info_T*);
-	int8_t (*Check)(void*);
-	void (*Ack)(Protocol_Info_T*);
+	uint8_t	Serial; 			//历史协议编号(流水号)
+	PROTOCOL_TYPE ProtocolType;	//协议类型
+	void (*Send)(uint8_t* Data, uint8_t Len);//发送回调函数(发送协议需实现)
+	void (*Transpond)(uint8_t* Data, uint8_t Len);//转发回调函数(转发协议需实现)
+	void (*Handle)(Protocol_Info_T*);							//处理回调函数(接收函数需实现)
+	int8_t (*Check)(void*);												//协议参数检查函数(所有协议可实现)
+	void (*Ack)(Protocol_Info_T*);								//应答函数(所有协议可实现)
+	
 };
 /****************************************************
 	结构体名:	Protocol_Info_T
@@ -118,12 +124,15 @@ struct _PROTOCOL_RESOLVER_T{
 	extern Protocol_Resolver_T *ProtocolResolver_5; 
 #endif
 
+
+#define ProtocolFrame_IRQHandler() do{if(PaddingProtocol()) return;}while(0)
 extern void ProtocolFrame_Init(void);
 //extern Protocol_Info_T Create_Protocol_Info(int8_t len,SEND_ACTION type,void (*handle)(Protocol_Info_T*),int8_t (*check)(void*)); 
 //int8_t Send_To_Uart(Protocol_Info_T* protocol_info);
 //int8_t Send_To_Buff(Protocol_Info_T* protocol_info); 
 extern void Protocol_Send(uint32_t ModuleAction,void* Data,uint8_t Len);
 extern void Protocol_Send_Transpond(Protocol_Info_T* pi);
+extern int8_t PaddingProtocol(void);
 extern void FetchProtocols(void);
 extern int8_t Protocol_Register(Protocol_Desc_T* Desc_T, PROTOCOL_TYPE Protocol_Type); 
 #endif

@@ -46,6 +46,9 @@ struct _DMA_Receiver_T{
 	int16_t (*Read)(DMA_Receiver_T* udr, uint8_t *data, uint8_t len);
 	int16_t (*Lseek)(DMA_Receiver_T* udr, int16_t offset);
 };
+
+#define SINGLE_BUFFSIZE 100
+
 /*************串口接收者*************/	
 #ifdef UART1_DMA_RECEIVER				
 	#define UART1_DMA_RECV_SIZE UART1_DMA_RECEIVER 
@@ -106,8 +109,6 @@ extern void Buff_To_NRF(void);
 extern void ComBuff_Init(void);
 extern void ComBuff_Configuration(void);
 
-
-extern void PaddingProtocol(void);
 extern void SenderKeepTransmit(void);
 extern uint8_t PaddingProtocol_IT(void);
 

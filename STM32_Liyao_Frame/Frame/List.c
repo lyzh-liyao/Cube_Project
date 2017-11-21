@@ -30,7 +30,7 @@ int8_t List_Add(List_Head_T* List_Head, void* Data, uint16_t Len){
 	//分配ListNode_T
 	ListNode = MALLOC(sizeof(List_Node_T)); 
 	MALLOC_CHECK(ListNode, "List_Add"); 
-	ListNode->Data = CALLOC(Len, sizeof(uint8_t));
+	ListNode->Data = MALLOC(Len);
 	MALLOC_CHECK(ListNode->Data, "List_Add"); 
 	//赋值ListNode_T 
 	ListNode->Next = NULL;
@@ -61,7 +61,7 @@ List_Node_T* ListNode = NULL;
 	//分配ListNode_T
 	ListNode = MALLOC(sizeof(List_Node_T)); 
 	MALLOC_CHECK(ListNode, "List_Add_Tail"); 
-	ListNode->Data = CALLOC(Len, sizeof(uint8_t));
+	ListNode->Data = MALLOC(Len);
 	MALLOC_CHECK(ListNode->Data, "List_Add_Tail"); 
 	//赋值ListNode_T 
 	ListNode->Next = NULL;

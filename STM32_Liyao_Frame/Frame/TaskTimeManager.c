@@ -103,6 +103,7 @@ int8_t TaskTime_Add(int8_t alias,uint16_t TaskCycle ,void(*Run)(void), TASK_MODE
 	//	if(TaskTimeLink[i]._TaskID == -1){
 	newTaskTime = MALLOC(sizeof(TaskTime_T));
 	MALLOC_CHECK(newTaskTime,"TaskTime_Add");
+	if(newTaskTime == NULL) return -100;
 	//newTaskTime = &TaskTimeLink[i];
 	newTaskTime->Alias = alias;			 //ÈÎÎñid  
 	newTaskTime->_TaskID = _TaskTime_AllocID();			 //Ë÷Òý

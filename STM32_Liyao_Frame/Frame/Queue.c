@@ -190,7 +190,7 @@ int8_t Queue_Link_Push(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 	MALLOC_CHECK(Queue_Pack, "Queue_Link_Put1"); 
 	if(Queue_Pack == NULL)
 		return -100;
-	Queue_Pack->Data = CALLOC(Len, sizeof(uint8_t));
+	Queue_Pack->Data = MALLOC(Len);
 	MALLOC_CHECK(Queue_Pack->Data, "Queue_Link_Put2"); 
 	if(Queue_Pack->Data == NULL)
 		return -100;
@@ -203,6 +203,7 @@ int8_t Queue_Link_Push(Queue_Head_T* Queue_Head,void* Data, uint16_t Len){
 	//加入链表
 	QUEUE_LOCK;
 	if(Queue_Head->Out == NULL){//首次加入
+		Queue_Head->Count = 0;
 		Queue_Head->Out = Queue_Head->In = Queue_Pack;
 	}else{//已有数据加入 
 		Queue_Head->In->Next = Queue_Pack;
@@ -231,10 +232,10 @@ uint16_t Queue_Link_OutSize(Queue_Head_T* Queue_Head){
 ****************************************************/
 int8_t Queue_Link_Pop(Queue_Head_T* Queue_Head, void* Data){ 
 	Queue_Pack_T* CurPack = Queue_Head->Out;
-	if(Queue_Head->Out == NULL)
+	QUEUE_LOCK;
+	if(Queue_Head->Out == NULL )
 		return -1;
 	//为回填指针赋值 
-	QUEUE_LOCK;
 	memcpy(Data, CurPack->Data, CurPack->Len);
 	//移动队列Out指针
 	Queue_Head->Out = CurPack->Next;

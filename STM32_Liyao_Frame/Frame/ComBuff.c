@@ -68,6 +68,9 @@ void DMA_Sender_Init(DMA_Sender_T* Uart_DMA_Sender, UART_HandleTypeDef* huart){
   Uart_DMA_Sender->Write = _Write;
   Uart_DMA_Sender->WriteByte = _WriteByte;
   Uart_DMA_Sender->KeepTransmit = _KeepTransmit;
+		
+	WRITE_REG(huart->Instance->ICR, UART_CLEAR_TCF);//开启发送完成中断便于持续发送
+	SET_BIT(huart->Instance->CR1, USART_ISR_TC);
 }
 #endif
 
@@ -106,7 +109,7 @@ void DMA_Receiver_Init(DMA_Receiver_T* Uart_DMA_Receiver, UART_HandleTypeDef* hu
 ****************************************************/
 static int8_t _Write(DMA_Sender_T* uds,uint8_t* data, uint8_t len){ 
   if(uds->OverFlag){//发送未完成则放入缓冲区
-    Log.info("DMA BUSY加入缓存\r\n");
+//    Log.info("DMA BUSY加入缓存\r\n"); 
     Queue_Link_Push(uds->DMA_Send_Queue, data, len); 
     return 0;
   }
@@ -285,7 +288,7 @@ __weak int fputc(int ch,FILE *f)
 	LL_USART_TransmitData8(DEBUG_USART,ch);
 #else
 	#ifdef DEBUG_USART
-		 HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 10);
+		 HAL_UART_Transmit(&DEBUG_USART, (uint8_t*)&ch, 1, 1000);
 	#endif
 #endif
 //  
@@ -509,109 +512,6 @@ __weak void SenderKeepTransmit(void){
 __weak void SenderKeepTransmit(void){;}
 #endif
 
-#if  (PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER) || (PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER)|| (PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER) || (PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER) || (PROTOCOL_RESOLVER_5 && UART5_DMA_RECEIVER)
-/****************************************************
-        函数名: PaddingProtocol
-        功能:   从串口缓冲区中读取数据到协议解析器
-        作者:   liyao 2016年9月14日10:55:11
-****************************************************/ 
-__weak void PaddingProtocol(void){
-	#define BUFFSIZE 100
-	int8_t cnt = 0;
-	uint8_t data[BUFFSIZE] = {0};  
-	#if PROTOCOL_RESOLVER_1 && UART1_DMA_RECEIVER
-    while((cnt = Uart1_DMA_Receiver.ReadTo(&Uart1_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,data,cnt);
-  #endif
-	#if PROTOCOL_RESOLVER_2 && UART2_DMA_RECEIVER
-		while((cnt = Uart2_DMA_Receiver.ReadTo(&Uart2_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,data,cnt);  
-	#endif
-	#if PROTOCOL_RESOLVER_3 && UART3_DMA_RECEIVER
-		while((cnt = Uart3_DMA_Receiver.ReadTo(&Uart3_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,data,cnt);  
-	#endif
-	#if PROTOCOL_RESOLVER_4 && UART4_DMA_RECEIVER
-		while((cnt = Uart4_DMA_Receiver.ReadTo(&Uart4_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,data,cnt);  
-	#endif
-	#if PROTOCOL_RESOLVER_5 && UART5_DMA_RECEIVER
-		while((cnt = Uart5_DMA_Receiver.ReadTo(&Uart5_DMA_Receiver,0xf8,data,BUFFSIZE))>0)
-			ProtocolResolver_5->Protocol_Put(ProtocolResolver_5,data,cnt);  
-	#endif
-}
-#else
-__weak void PaddingProtocol(void){;}
-#endif
-
-#if PROTOCOL_RESOLVER_IT_1 || PROTOCOL_RESOLVER_IT_2 || PROTOCOL_RESOLVER_IT_3 || PROTOCOL_RESOLVER_IT_4 || PROTOCOL_RESOLVER_IT_5
-__weak uint8_t  PaddingProtocol_IT(void){
-#if PROTOCOL_RESOLVER_IT_1
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART1->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART1->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART1->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART1->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART1->DR);	
-	#endif
-//		USART1->DR = UartData;
-		ProtocolResolver_1->Protocol_Put(ProtocolResolver_1,&UartData,1);
-		return 1;
-	}
-#endif
-#if PROTOCOL_RESOLVER_IT_2
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART2->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART2->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART2->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART2->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART2->DR);
-	#endif
-		ProtocolResolver_2->Protocol_Put(ProtocolResolver_2,&UartData,1);
-		return 1;
-	}
-#endif
-#if PROTOCOL_RESOLVER_IT_3
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART3->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART3->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART3->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART3->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART3->DR);
-	#endif
-//		USART1->DR = UartData;
-		ProtocolResolver_3->Protocol_Put(ProtocolResolver_3,&UartData,1);
-		return 1;
-	}
-#endif
-#if PROTOCOL_RESOLVER_IT_4
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART4->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART4->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART4->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART4->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART4->DR);
-	#endif
-		ProtocolResolver_4->Protocol_Put(ProtocolResolver_4,&UartData,1);
-		return 1;
-	}
-#endif
-#if PROTOCOL_RESOLVER_IT_5
-	#if MCU_TYPE == 030
-	if(((READ_REG(USART5->ISR) & USART_ISR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART5->RDR);
-	#elif MCU_TYPE == 103
-	if(((READ_REG(USART5->SR) & USART_SR_RXNE) != RESET) && ((READ_REG(USART5->CR1) & USART_CR1_RXNEIE) != RESET)){
-		uint8_t UartData =  READ_REG(USART5->DR);
-	#endif
-		ProtocolResolver_5->Protocol_Put(ProtocolResolver_5,&UartData,1);
-		return 1;
-	}
-#endif
-	return 0;
-}
-#endif
-
 
 /****************************************************
 	函数名:	ComBuff_Init
@@ -652,9 +552,9 @@ void ComBuff_Init(void){
 #endif 
 #ifdef __TASKTIMEMANAGER_H__
 	/*-----------持续传输任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(0,10), SenderKeepTransmit, Real_Mode);
+//  TaskTime_Add(TaskID++, TimeCycle(0,10), SenderKeepTransmit, Real_Mode);
 	/*-----------协议解析任务-----------------*/
-  TaskTime_Add(TaskID++, TimeCycle(0,10), PaddingProtocol, Real_Mode);
+//  TaskTime_Add(TaskID++, TimeCycle(0,10), PaddingProtocol, Real_Mode);
 #endif
 }
 //--------------------------------printf实现-------------------------------------
